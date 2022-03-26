@@ -1,7 +1,10 @@
 import os
+from cv2 import normalize
 import pandas as pd
-import re
 
+import re
+from nltk.corpus import stopwords
+from nltk.stem.snowball import SnowballStemmer
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
@@ -54,16 +57,16 @@ def label_extraction(df):
 def normalize_corpus(corpus):
 
     corpus_aux = []
+    stemmer = SnowballStemmer('portuguese')
 
     for i in range(0, len(corpus)):
-        tokens = re.sub('[^a-zA-Z]', ' ', corpus[i])
-        tokens = tokens.lower()
+        row = corpus[i].lower()
 
-        corpus_aux.append()
+        row = ' '.join([stemmer.stem(w) for w in row.split() if not w in set(stopwords.words('portuguese'))])
 
-    corpus = corpus_aux
+        corpus_aux.append(row)
 
-    return corpus
+    return corpus_aux
 
 
 def vectorize_bag_of_words(corpus, labels, max_features=1500):
@@ -107,6 +110,9 @@ def main():
 
     corpus = corpus_extraction(df_adu)
     labels = label_extraction(df_adu)
+
+    corpus = normalize_corpus(corpus)
+    #print(corpus)
 
     X, y = vectorize_bag_of_words(corpus, labels)
 
