@@ -221,8 +221,8 @@ def baseline_with_normalization(df_adu, df_text, algorithm='decision_tree'):
     evaluate_results(y_pred=y_pred, y_test=y_test)
 
 
-def oversample_with_smote(X_train, y_train):
-    over_sampler = SMOTE()
+def oversample_with_smote(X_train, y_train, sampling_strategy="auto"):
+    over_sampler = SMOTE(sampling_strategy=sampling_strategy)
 
     X_train, y_train = over_sampler.fit_resample(X_train, y_train)
 
@@ -240,7 +240,12 @@ def baseline_2(df_adu):
 
     X_train, X_test, y_train, y_test = split_train_test(X.toarray(), y, 0.30)
 
-    X_train, y_train = oversample_with_smote(X_train, y_train)
+    X_train, y_train = oversample_with_smote(X_train, y_train, {
+        'Policy': 3000,
+        'Value(+)': 3500,
+        'Fact': 4500,
+        'Value(-)': 3400,
+    })
 
     # pd_df = pd.DataFrame(y_train, columns=['label'])
 
