@@ -19,7 +19,6 @@ def size_vocabulary(vectorizer):
 
 def class_distribution(df):
     aggr_df = df.groupby(['label'])['label'].count().reset_index(name='counts')
-    print(aggr_df.head())
 
     fig = px.bar(aggr_df, x='label', y='counts')
     fig.show()

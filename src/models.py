@@ -1,5 +1,7 @@
 import random
 
+import pandas as pd
+from imblearn.over_sampling import SMOTE
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
 from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
@@ -12,7 +14,7 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 from src.evaluation import evaluate_results
-from src.exploratory_analyses import size_vocabulary
+from src.exploratory_analyses import size_vocabulary, class_distribution
 from src.other import drop_columns
 from src.vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
 
@@ -85,8 +87,7 @@ def normalize_corpus(corpus):
 
 
 def split_train_test(X, y, test_size=0.20):
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=2, stratify=y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
 
     return X_train, X_test, y_train, y_test
 
@@ -95,6 +96,9 @@ def apply_clf(clf, X_train, y_train, X_test):
     clf.fit(X_train, y_train)
 
     y_pred = clf.predict(X_test)
+
+    for elem in y_pred:
+        print(elem)
 
     return y_pred
 
@@ -215,3 +219,38 @@ def baseline_with_normalization(df_adu, df_text, algorithm='decision_tree'):
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
 
     evaluate_results(y_pred=y_pred, y_test=y_test)
+
+
+def oversample_with_smote(X_train, y_train):
+    over_sampler = SMOTE()
+
+    X_train, y_train = over_sampler.fit_resample(X_train, y_train)
+
+    return X_train, y_train
+
+
+def baseline_2(df_adu):
+    drop_columns(df_adu, ['article_id', 'node', 'annotator'])
+
+    corpus = corpus_extraction(df_adu)
+
+    X, vec, vectorizer = vectorize_bag_of_words(corpus)
+
+    y = label_extraction(df_adu)
+
+    X_train, X_test, y_train, y_test = split_train_test(X.toarray(), y, 0.30)
+
+    X_train, y_train = oversample_with_smote(X_train, y_train)
+
+    # pd_df = pd.DataFrame(y_train, columns=['label'])
+
+    # class_distribution(pd_df)
+
+    clf = clf_factory('naive_bayes')
+
+    y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
+
+    evaluate_results(y_pred=y_pred, y_test=y_test)
+
+    """
+    """

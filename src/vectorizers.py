@@ -16,7 +16,7 @@ def vectorize_tf_idf(corpus, max_features=None):
 
     vec = vectorizer.fit(corpus)
 
-    X = vectorizer.transform(corpus).toarray()
+    X = vectorizer.transform(corpus).todense()
 
     return X, vec, vectorizer
 

@@ -1,11 +1,12 @@
 from src.exploratory_analyses import class_distribution
-from src.models import baseline, test_tf_idf, test_1_hot_vector, test_different_features_sizes
+from src.models import baseline_2
 from src.other import load_dataset
 
 
 def main():
     df_adu, df_text = load_dataset()
-    class_distribution(df_adu)
+    baseline_2(df_adu)
+    # class_distribution(df_adu)
     # print("Baseline")
     # test_different_features_sizes(df_adu.copy(), df_text.copy())
     # baseline(df_adu.copy(), df_text.copy())
