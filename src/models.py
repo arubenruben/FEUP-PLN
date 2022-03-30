@@ -1,3 +1,6 @@
+#import spacy
+import nltk
+from nltk.stem import WordNetLemmatizer 
 from nltk.stem import SnowballStemmer
 from nltk.corpus import stopwords
 from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
@@ -10,8 +13,8 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
-from src.evaluation import evaluate_results
-from src.other import drop_columns
+from evaluation import evaluate_results
+from other import drop_columns
 
 
 def clf_factory(algorithm, *params):
@@ -70,17 +73,28 @@ def label_extraction(df):
 def normalize_corpus(corpus):
     corpus_aux = []
 
+    ''' Lemmatizer
+    nlp = spacy.load("pt_core_news_sm")
+    
+    for doc in nlp.pipe(corpus, batch_size=32, n_process=3, disable=["parser", "ner"]):
+        lemmas = []
+        for token in doc:
+            lemmas.append(token.lemma_)
+
+        row = ' '.join([w for w in lemmas if w not in set(stopwords.words('portuguese'))])
+    '''
+    
     stemmer = SnowballStemmer('portuguese')
 
-    for i in range(0, len(corpus)):
-        row = corpus[i].lower()
-        row = ' '.join([stemmer.stem(w) for w in row.split() if not w in set(stopwords.words('portuguese'))])
-
+    for row in corpus:
+        word_list = nltk.word_tokenize(row)
+        row = ' '.join([stemmer.stem(w) for w in word_list if not w in set(stopwords.words('portuguese'))])
         corpus_aux.append(row)
+
     return corpus_aux
 
 
-def vectorize_bag_of_words(corpus, labels, max_features=1500):
+def vectorize_bag_of_words(corpus, labels, max_features=None):
     vectorizer = CountVectorizer(max_features=max_features)
 
     X = vectorizer.fit_transform(corpus).toarray()
