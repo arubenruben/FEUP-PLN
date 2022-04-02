@@ -264,20 +264,15 @@ def baseline_2(df_adu):
 
     y = label_extraction(df_adu)
 
-    X_train, X_test, y_train, y_test = split_train_test(X.toarray(), y, 0.30)
+    X_train, X_test, y_train, y_test = split_train_test(X.toarray(), y, 0.20)
 
-    X_train, y_train = oversample_with_smote(X_train, y_train, {
-        'Policy': 3000,
-        'Value(+)': 3500,
-        'Fact': 4500,
-        'Value(-)': 3400,
-    })
+    X_train, y_train = oversample_with_smote(X_train, y_train)
 
     # pd_df = pd.DataFrame(y_train, columns=['label'])
 
     # class_distribution(pd_df)
 
-    clf = clf_factory('naive_bayes')
+    clf = clf_factory('decision_tree')
 
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
 
