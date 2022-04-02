@@ -1,5 +1,4 @@
 import json
-import pickle
 
 import plotly.express as px
 
@@ -46,8 +45,7 @@ def class_distribution(df):
 
 def outlier_detection(df_adu, option='delete'):
     results = {}
-    list_collision = []
-
+    dict_collisions = {}
     for _, row in df_adu.iterrows():
         if row['article_id'] not in results.keys():
             results[row['article_id']] = {
@@ -59,6 +57,7 @@ def outlier_detection(df_adu, option='delete'):
 
         if row['annotator'] == 'A':
             results[row['article_id']]['A'].append({
+                'id': row['id'],
                 'ranges': row['ranges'],
                 'tokens': row['tokens'],
                 'label': row['label']
@@ -66,6 +65,7 @@ def outlier_detection(df_adu, option='delete'):
 
         elif row['annotator'] == 'B':
             results[row['article_id']]['B'].append({
+                'id': row['id'],
                 'ranges': row['ranges'],
                 'tokens': row['tokens'],
                 'label': row['label']
@@ -73,6 +73,7 @@ def outlier_detection(df_adu, option='delete'):
 
         elif row['annotator'] == 'C':
             results[row['article_id']]['C'].append({
+                'id': row['id'],
                 'ranges': row['ranges'],
                 'tokens': row['tokens'],
                 'label': row['label']
@@ -80,6 +81,7 @@ def outlier_detection(df_adu, option='delete'):
 
         elif row['annotator'] == 'D':
             results[row['article_id']]['D'].append({
+                'id': row['id'],
                 'ranges': row['ranges'],
                 'tokens': row['tokens'],
                 'label': row['label']
@@ -87,50 +89,58 @@ def outlier_detection(df_adu, option='delete'):
 
     for article_id in results.keys():
 
-        counter = 0
-
         for adu_A in results[article_id]['A']:
-            counter += adu_matching(adu_A, results[article_id]['B'])
-            counter += adu_matching(adu_A, results[article_id]['C'])
-            counter += adu_matching(adu_A, results[article_id]['D'])
+            adu_matching(adu_A, results[article_id]['B'], results[article_id]['C'], results[article_id]['D'],
+                         dict_collisions)
         for adu_B in results[article_id]['B']:
-            counter += adu_matching(adu_B, results[article_id]['A'])
-            counter += adu_matching(adu_B, results[article_id]['C'])
-            counter += adu_matching(adu_B, results[article_id]['D'])
+            adu_matching(adu_B, results[article_id]['A'], results[article_id]['C'], results[article_id]['D'],
+                         dict_collisions)
         for adu_C in results[article_id]['C']:
-            counter += adu_matching(adu_C, results[article_id]['A'])
-            counter += adu_matching(adu_C, results[article_id]['B'])
-            counter += adu_matching(adu_C, results[article_id]['D'])
+            adu_matching(adu_C, results[article_id]['A'], results[article_id]['B'], results[article_id]['D'],
+                         dict_collisions)
         for adu_D in results[article_id]['D']:
-            counter += adu_matching(adu_D, results[article_id]['A'])
-            counter += adu_matching(adu_D, results[article_id]['B'])
-            counter += adu_matching(adu_D, results[article_id]['C'])
+            adu_matching(adu_D, results[article_id]['A'], results[article_id]['B'], results[article_id]['C'],
+                         dict_collisions)
 
-        if counter > 0:
-            list_collision.append(article_id)
+    print(dict_collisions)
 
-    return list_collision
+    return dict_collisions
 
 
-def adu_matching(adu, list_annotater):
-    list_collisions = []
+def adu_matching(adu, list_annotater_X, list_annotater_Y, list_annotater_Z, dict_collisions):
+    for iterator in [list_annotater_X, list_annotater_Y, list_annotater_Z]:
+        for elem in iterator:
+            if json.loads(adu['ranges'])[0][0] < json.loads(elem['ranges'])[0][0] < json.loads(adu['ranges'])[0][1]:
+                if adu['label'] != elem['label']:
+                    # print(f"Disagreement between:\n{adu['tokens']} \n and \n {elem['tokens']}")
+                    if adu['id'] not in dict_collisions.keys():
+                        dict_collisions[adu['id']] = [elem['id']]
+                    else:
+                        dict_collisions[adu['id']].append(elem['id'])
 
-    for elem in list_annotater:
-        if json.loads(adu['ranges'])[0][0] < json.loads(elem['ranges'])[0][0] < json.loads(adu['ranges'])[0][1]:
-            if adu['label'] != elem['label']:
-                # print(f"Disagreement between:\n{adu['tokens']} \n and \n {elem['tokens']}")
-                list_collisions.append(elem)
 
-    return len(list_collisions)
-
-
-def deal_with_outliers(df_adu, list_collisions, option='delete'):
-    # print(f"Before:{df_adu.describe()}")
+def deal_with_outliers(df_adu, dict_collisions, option='delete'):
+    print(f"Before:{df_adu.describe()}")
 
     if option == 'delete':
-        for elem in list_collisions:
-            df_adu = df_adu[df_adu.article_id != elem]
+        list_to_remove = []
+
+        for key_left in dict_collisions.keys():
+            list_to_remove.append(key_left)
+            for elem in dict_collisions[key_left]:
+                list_to_remove.append(elem)
+
+        df_adu.set_index("id", inplace=True)
+
+        df_adu.drop(list_to_remove, inplace=True)
+
+        df_adu.reset_index(inplace=True)
+
+        # df_adu = df_adu[df_adu['id'] != elem]
+
+        # df_adu = df_adu[df_adu['id'] != key_left]
+
     elif option == 'majority':
         pass
 
-    # print(f"After:{df_adu.describe()}")
+    print(f"After:{df_adu.describe()}")

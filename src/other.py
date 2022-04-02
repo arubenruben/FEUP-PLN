@@ -1,4 +1,9 @@
+import math
 import os
+import random
+import time
+from datetime import datetime
+
 import pandas as pd
 
 
@@ -15,5 +20,18 @@ def drop_columns(df, columns_to_drop: list):
 
 def load_dataset():
     df_text = pd.DataFrame(pd.read_csv(os.path.join('dataset', 'OpArticles.csv')))
+
     df_adu = pd.DataFrame(pd.read_csv(os.path.join('dataset', 'OpArticles_ADUs.csv')))
+
+    create_index_column(df_adu)
+
     return df_adu, df_text
+
+
+def create_index_column(df):
+    df["id"] = df.index + 1
+    #df.set_index("id", inplace=True)
+
+
+def write_df_to_file(df):
+    df.to_csv(os.path.join('results', f"{random.randint(0, 90000).__str__()}.csv"))

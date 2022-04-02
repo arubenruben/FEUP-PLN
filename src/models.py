@@ -110,9 +110,6 @@ def apply_clf(clf, X_train, y_train, X_test):
 
     y_pred = clf.predict(X_test)
 
-    for elem in y_pred:
-        print(elem)
-
     return y_pred
 
 
