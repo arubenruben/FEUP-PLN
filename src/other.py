@@ -30,8 +30,15 @@ def load_dataset():
 
 def create_index_column(df):
     df["id"] = df.index + 1
-    #df.set_index("id", inplace=True)
 
 
 def write_df_to_file(df):
     df.to_csv(os.path.join('results', f"{random.randint(0, 90000).__str__()}.csv"))
+
+
+def remove_dataframe_rows_by_id(df_to_remove, list_ids_to_remove):
+    df_to_remove.set_index("id", inplace=True)
+
+    df_to_remove.drop(list_ids_to_remove, inplace=True)
+
+    df_to_remove.reset_index(inplace=True)

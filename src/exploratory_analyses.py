@@ -2,6 +2,8 @@ import json
 
 import plotly.express as px
 
+from src.other import remove_dataframe_rows_by_id
+
 
 def most_common_words(X, vec, n=None):
     sum_words = X.sum(axis=0)
@@ -128,11 +130,7 @@ def deal_with_outliers(df_adu, dict_collisions, option='delete'):
             for elem in dict_collisions[key_left]:
                 list_to_remove.append(elem)
 
-        df_adu.set_index("id", inplace=True)
-
-        df_adu.drop(list_to_remove, inplace=True)
-
-        df_adu.reset_index(inplace=True)
+        remove_dataframe_rows_by_id(df_adu, list_to_remove)
 
     elif option == 'majority':
         list_to_remove = []
@@ -145,6 +143,9 @@ def deal_with_outliers(df_adu, dict_collisions, option='delete'):
                 'Value(-)': 0,
             }
 
+            majority_vote = None
+            number_votes = 0
+
             adu = df_adu.loc[df_adu['id'] == key_left].iloc[0]
 
             counters[adu['label']] += 1
@@ -153,20 +154,30 @@ def deal_with_outliers(df_adu, dict_collisions, option='delete'):
                 adu = df_adu.loc[df_adu['id'] == elem].iloc[0]
                 counters[adu['label']] += 1
 
-            print(counters)
+            for elem in counters.keys():
+                number_votes += counters[elem]
+
             """
-            Missing:
-            1)Find Majority
-            
-            NAO ESQUECER QUE MAIORIAS PODEM SER 2-1. NEM TODOS OS ADUS SAO CLASSIFIED PELOS 4
-        
-            2)Remove Non Majority Elems
+            Find the majority vote type
+            Majority_Vote returns a Valid Label
             """
 
-    df_adu.set_index("id", inplace=True)
+            for elem in counters.keys():
+                if counters[elem] / number_votes >= 0.5:
+                    majority_vote = elem
+                    break
 
-    df_adu.drop(list_to_remove, inplace=True)
+            if not majority_vote:
+                continue
 
-    df_adu.reset_index(inplace=True)
+            if adu['label'] != majority_vote:
+                list_to_remove.append(adu['id'])
 
-# print(f"After:{df_adu.describe()}")
+            for elem in dict_collisions[key_left]:
+                elem_adu = df_adu.loc[df_adu['id'] == elem].iloc[0]
+                if elem_adu['label'] != majority_vote:
+                    list_to_remove.append(elem_adu['id'])
+
+        remove_dataframe_rows_by_id(df_adu, list_to_remove)
+
+    # print(f"After:{df_adu.describe()}")
