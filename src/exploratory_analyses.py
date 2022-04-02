@@ -44,8 +44,9 @@ def class_distribution(df):
     """
 
 
-def outlier_detection(df_adu):
+def outlier_detection(df_adu, option='delete'):
     results = {}
+    list_collision = []
 
     for _, row in df_adu.iterrows():
         if row['article_id'] not in results.keys():
@@ -85,21 +86,51 @@ def outlier_detection(df_adu):
             })
 
     for article_id in results.keys():
+
+        counter = 0
+
         for adu_A in results[article_id]['A']:
-            adu_matching(adu_A, results[article_id]['B'], results[article_id]['C'], results[article_id]['D'])
-        # TODO: Complete with other cases
-        # for adu_B in results[article_id]['B']:
-        #   adu_matching(adu_B, results[article_id]['B'], results[article_id]['C'], results[article_id]['D'])
+            counter += adu_matching(adu_A, results[article_id]['B'])
+            counter += adu_matching(adu_A, results[article_id]['C'])
+            counter += adu_matching(adu_A, results[article_id]['D'])
+        for adu_B in results[article_id]['B']:
+            counter += adu_matching(adu_B, results[article_id]['A'])
+            counter += adu_matching(adu_B, results[article_id]['C'])
+            counter += adu_matching(adu_B, results[article_id]['D'])
+        for adu_C in results[article_id]['C']:
+            counter += adu_matching(adu_C, results[article_id]['A'])
+            counter += adu_matching(adu_C, results[article_id]['B'])
+            counter += adu_matching(adu_C, results[article_id]['D'])
+        for adu_D in results[article_id]['D']:
+            counter += adu_matching(adu_D, results[article_id]['A'])
+            counter += adu_matching(adu_D, results[article_id]['B'])
+            counter += adu_matching(adu_D, results[article_id]['C'])
+
+        if counter > 0:
+            list_collision.append(article_id)
+
+    return list_collision
 
 
-def adu_matching(adu, list_annotater_X, list_annotater_Y, list_annotater_Z):
+def adu_matching(adu, list_annotater):
     list_collisions = []
-    # TODO: Remove those elements
-    for iterable in [list_annotater_X, list_annotater_Y, list_annotater_Z]:
-        for elem in iterable:
-            if json.loads(adu['ranges'])[0][0] < json.loads(elem['ranges'])[0][0] < json.loads(adu['ranges'])[0][1]:
-                if adu['label'] == elem['label']:
-                    pass
-                    # print("Agreement")
-                else:
-                    print(f"Disagreement between:\n{adu['tokens']} \n and \n {elem['tokens']}")
+
+    for elem in list_annotater:
+        if json.loads(adu['ranges'])[0][0] < json.loads(elem['ranges'])[0][0] < json.loads(adu['ranges'])[0][1]:
+            if adu['label'] != elem['label']:
+                # print(f"Disagreement between:\n{adu['tokens']} \n and \n {elem['tokens']}")
+                list_collisions.append(elem)
+
+    return len(list_collisions)
+
+
+def deal_with_outliers(df_adu, list_collisions, option='delete'):
+    # print(f"Before:{df_adu.describe()}")
+
+    if option == 'delete':
+        for elem in list_collisions:
+            df_adu = df_adu[df_adu.article_id != elem]
+    elif option == 'majority':
+        pass
+
+    # print(f"After:{df_adu.describe()}")
