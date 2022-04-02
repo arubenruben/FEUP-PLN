@@ -2,7 +2,7 @@ import json
 
 import plotly.express as px
 
-from src.other import remove_dataframe_rows_by_id
+from other import remove_dataframe_rows_by_id
 
 
 def most_common_words(X, vec, n=None):
