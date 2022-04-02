@@ -1,5 +1,9 @@
 import os
+import random
+
+import numpy as np
 import pandas as pd
+import scipy.sparse as sp
 
 
 def convert_xlsx_to_csv(filename):
@@ -16,4 +20,23 @@ def drop_columns(df, columns_to_drop: list):
 def load_dataset():
     df_text = pd.DataFrame(pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles.csv')))
     df_adu = pd.DataFrame(pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles_ADUs.csv')))
+    create_index_column(df_adu)
     return df_adu, df_text
+
+
+def create_index_column(df):
+    df["id"] = df.index + 1
+
+
+def write_df_to_file(df):
+    df.to_csv(os.path.join('results', f"{random.randint(0, 90000).__str__()}.csv"))
+
+
+def remove_dataframe_rows_by_id(df_to_remove, list_ids_to_remove):
+    df_to_remove.set_index("id", inplace=True)
+
+    df_to_remove.drop(list_ids_to_remove, inplace=True)
+
+    df_to_remove.reset_index(inplace=True)
+
+
