@@ -1,9 +1,7 @@
-#import spacy
-import nltk
-from nltk.stem import WordNetLemmatizer 
+# import spacy
 import random
 
-import pandas as pd
+import nltk
 from imblearn.over_sampling import SMOTE
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
@@ -16,10 +14,8 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
-from evaluation import evaluate_results
-from other import drop_columns
 from src.evaluation import evaluate_results
-from src.exploratory_analyses import size_vocabulary, class_distribution
+from src.exploratory_analyses import size_vocabulary, outlier_detection, deal_with_outliers
 from src.other import drop_columns
 from src.vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
 
@@ -90,7 +86,7 @@ def normalize_corpus(corpus):
 
         row = ' '.join([w for w in lemmas if w not in set(stopwords.words('portuguese'))])
     '''
-    
+
     stemmer = SnowballStemmer('portuguese')
 
     for row in corpus:
@@ -101,15 +97,6 @@ def normalize_corpus(corpus):
         corpus_aux.append(row)
 
     return corpus_aux
-
-
-def vectorize_bag_of_words(corpus, labels, max_features=None):
-    vectorizer = CountVectorizer(max_features=max_features)
-
-    X = vectorizer.fit_transform(corpus).toarray()
-    y = labels
-
-    return X, y
 
 
 def split_train_test(X, y, test_size=0.20):
@@ -123,13 +110,10 @@ def apply_clf(clf, X_train, y_train, X_test):
 
     y_pred = clf.predict(X_test)
 
-    for elem in y_pred:
-        print(elem)
-
     return y_pred
 
 
-def baseline(df_adu, df_text, algorithm='decision_tree'):
+def baseline(df_adu, df_text, algorithm='naive_bayes'):
     drop_columns(df_adu, ['article_id', 'node', 'annotator'])
     drop_columns(df_text, ['article_id', 'title', 'authors', 'meta_description',
                            'topics', 'keywords', 'publish_date', 'url_canonical'])
@@ -280,3 +264,31 @@ def baseline_2(df_adu):
 
     """
     """
+
+
+def baseline_deleting_outliers(df_adu, outlier_strategy='delete'):
+    dict_collisions = outlier_detection(df_adu)
+
+    deal_with_outliers(df_adu, dict_collisions, outlier_strategy)
+
+    drop_columns(df_adu, ['article_id', 'node', 'annotator'])
+
+    corpus = corpus_extraction(df_adu)
+
+    X, vec, vectorizer = vectorize_bag_of_words(corpus)
+
+    y = label_extraction(df_adu)
+
+    X_train, X_test, y_train, y_test = split_train_test(X.toarray(), y, 0.20)
+
+    # X_train, y_train = oversample_with_smote(X_train, y_train)
+
+    # pd_df = pd.DataFrame(y_train, columns=['label'])
+
+    # class_distribution(pd_df)
+
+    clf = clf_factory('naive_bayes')
+
+    y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
+
+    evaluate_results(y_pred=y_pred, y_test=y_test)
