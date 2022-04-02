@@ -18,10 +18,10 @@ from sklearn.tree import DecisionTreeClassifier
 
 from evaluation import evaluate_results
 from other import drop_columns
-from src.evaluation import evaluate_results
-from src.exploratory_analyses import size_vocabulary, class_distribution
-from src.other import drop_columns
-from src.vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
+from evaluation import evaluate_results
+from exploratory_analyses import size_vocabulary, class_distribution
+from other import drop_columns
+from vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
 
 
 def clf_factory(algorithm, *params):

@@ -1,13 +1,13 @@
-from src.exploratory_analyses import class_distribution, outlier_detection
-from src.models import baseline_2
-from src.other import load_dataset
+from exploratory_analyses import class_distribution, outlier_detection
+from models import baseline_2
+from other import load_dataset
 
 
 def main():
     df_adu, df_text = load_dataset()
     # baseline_2(df_adu)
 
-    outlier_detection(df_adu)
+    #outlier_detection(df_adu)
 
     # class_distribution(df_adu)
     # print("Baseline")

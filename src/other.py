@@ -14,6 +14,6 @@ def drop_columns(df, columns_to_drop: list):
 
 
 def load_dataset():
-    df_text = pd.DataFrame(pd.read_csv(os.path.join('dataset', 'OpArticles.csv')))
-    df_adu = pd.DataFrame(pd.read_csv(os.path.join('dataset', 'OpArticles_ADUs.csv')))
+    df_text = pd.DataFrame(pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles.csv')))
+    df_adu = pd.DataFrame(pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles_ADUs.csv')))
     return df_adu, df_text
