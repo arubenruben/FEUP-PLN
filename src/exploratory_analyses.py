@@ -43,7 +43,7 @@ def class_distribution(df):
     """
 
 
-def outlier_detection(df_adu, option='delete'):
+def outlier_detection(df_adu):
     results = {}
     dict_collisions = {}
     for _, row in df_adu.iterrows():
@@ -102,8 +102,6 @@ def outlier_detection(df_adu, option='delete'):
             adu_matching(adu_D, results[article_id]['A'], results[article_id]['B'], results[article_id]['C'],
                          dict_collisions)
 
-    print(dict_collisions)
-
     return dict_collisions
 
 
@@ -120,7 +118,7 @@ def adu_matching(adu, list_annotater_X, list_annotater_Y, list_annotater_Z, dict
 
 
 def deal_with_outliers(df_adu, dict_collisions, option='delete'):
-    print(f"Before:{df_adu.describe()}")
+    # print(f"Before:{df_adu.describe()}")
 
     if option == 'delete':
         list_to_remove = []
@@ -136,11 +134,39 @@ def deal_with_outliers(df_adu, dict_collisions, option='delete'):
 
         df_adu.reset_index(inplace=True)
 
-        # df_adu = df_adu[df_adu['id'] != elem]
-
-        # df_adu = df_adu[df_adu['id'] != key_left]
-
     elif option == 'majority':
-        pass
+        list_to_remove = []
+        for key_left in dict_collisions.keys():
+            counters = {
+                'Fact': 0,
+                'Policy': 0,
+                'Value': 0,
+                'Value(+)': 0,
+                'Value(-)': 0,
+            }
 
-    print(f"After:{df_adu.describe()}")
+            adu = df_adu.loc[df_adu['id'] == key_left].iloc[0]
+
+            counters[adu['label']] += 1
+
+            for elem in dict_collisions[key_left]:
+                adu = df_adu.loc[df_adu['id'] == elem].iloc[0]
+                counters[adu['label']] += 1
+
+            print(counters)
+            """
+            Missing:
+            1)Find Majority
+            
+            NAO ESQUECER QUE MAIORIAS PODEM SER 2-1. NEM TODOS OS ADUS SAO CLASSIFIED PELOS 4
+        
+            2)Remove Non Majority Elems
+            """
+
+    df_adu.set_index("id", inplace=True)
+
+    df_adu.drop(list_to_remove, inplace=True)
+
+    df_adu.reset_index(inplace=True)
+
+# print(f"After:{df_adu.describe()}")

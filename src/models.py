@@ -15,7 +15,7 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 from src.evaluation import evaluate_results
-from src.exploratory_analyses import size_vocabulary
+from src.exploratory_analyses import size_vocabulary, outlier_detection, deal_with_outliers
 from src.other import drop_columns
 from src.vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
 
@@ -264,3 +264,31 @@ def baseline_2(df_adu):
 
     """
     """
+
+
+def baseline_deleting_outliers(df_adu, outlier_strategy='delete'):
+    dict_collisions = outlier_detection(df_adu)
+
+    deal_with_outliers(df_adu, dict_collisions, outlier_strategy)
+
+    drop_columns(df_adu, ['article_id', 'node', 'annotator'])
+
+    corpus = corpus_extraction(df_adu)
+
+    X, vec, vectorizer = vectorize_bag_of_words(corpus)
+
+    y = label_extraction(df_adu)
+
+    X_train, X_test, y_train, y_test = split_train_test(X.toarray(), y, 0.20)
+
+    # X_train, y_train = oversample_with_smote(X_train, y_train)
+
+    # pd_df = pd.DataFrame(y_train, columns=['label'])
+
+    # class_distribution(pd_df)
+
+    clf = clf_factory('naive_bayes')
+
+    y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
+
+    evaluate_results(y_pred=y_pred, y_test=y_test)
