@@ -22,7 +22,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from src.evaluation import evaluate_results
 from src.exploratory_analyses import size_vocabulary, outlier_detection, deal_with_outliers
-from src.other import drop_columns, write_df_to_file
+from src.other import drop_columns, write_df_to_file, load_dataset
 from src.vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
 
 
@@ -337,5 +337,28 @@ def model_annotator_explicit(df_adu):
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
 
     evaluate_results(y_pred=y_pred, y_test=y_test)
-    """
-    """
+
+
+def model_for_each_annotator():
+    for _ in range(3):
+        df_adu, df_text = load_dataset()
+        df_adu = df_adu[df_adu['annotator'] == 'A']
+        print("Annotator A")
+        baseline(df_adu, df_text)
+        print("-------")
+        df_adu, df_text = load_dataset()
+        df_adu = df_adu[df_adu['annotator'] == 'B']
+        print("Annotator B")
+        baseline(df_adu, df_text)
+        print("-------")
+        df_adu, df_text = load_dataset()
+        df_adu = df_adu[df_adu['annotator'] == 'C']
+        print("Annotator C")
+        baseline(df_adu, df_text)
+        print("-------")
+        df_adu, df_text = load_dataset()
+
+        df_adu = df_adu[df_adu['annotator'] == 'D']
+        print("Annotator D")
+        baseline(df_adu, df_text)
+        print("-------")
