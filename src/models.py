@@ -2,6 +2,7 @@
 import random
 
 import nltk
+import numpy as np
 import pandas as pd
 import scipy
 import scipy as sp
@@ -14,7 +15,7 @@ from sklearn import preprocessing
 from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import MultinomialNB, GaussianNB, CategoricalNB, BernoulliNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OrdinalEncoder
@@ -29,7 +30,7 @@ from vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_ho
 
 def clf_factory(algorithm, *params):
     if algorithm == 'naive_bayes':
-        return MultinomialNB(*params)
+        return GaussianNB(*params)
 
     if algorithm == 'knn':
         return KNeighborsClassifier(*params)
@@ -77,7 +78,7 @@ def label_extraction(df):
     for row in df['label']:
         labels.append(row)
 
-    return labels
+    return np.array(labels)
 
 
 def normalize_corpus(corpus):
@@ -148,10 +149,8 @@ def baseline(df_adu, df_text, algorithm='naive_bayes'):
     evaluate_results(y_pred=y_pred, y_test=y_test)
 
 
-def test_tf_idf(df_adu, df_text, algorithm='decision_tree'):
+def test_tf_idf(df_adu, df_text, algorithm='naive_bayes'):
     drop_columns(df_adu, ['article_id', 'node', 'annotator'])
-    drop_columns(df_text, ['article_id', 'title', 'authors', 'meta_description',
-                           'topics', 'keywords', 'publish_date', 'url_canonical'])
 
     corpus = corpus_extraction(df_adu)
 
@@ -164,11 +163,12 @@ def test_tf_idf(df_adu, df_text, algorithm='decision_tree'):
     clf = clf_factory(algorithm)
 
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
+    print('Policy' in y_pred)
 
     evaluate_results(y_pred=y_pred, y_test=y_test)
 
 
-def test_1_hot_vector(df_adu, df_text, algorithm='decision_tree'):
+def test_1_hot_vector(df_adu, df_text, algorithm='naive_bayes'):
     drop_columns(df_adu, ['article_id', 'node', 'annotator'])
     drop_columns(df_text, ['article_id', 'title', 'authors', 'meta_description',
                            'topics', 'keywords', 'publish_date', 'url_canonical'])
