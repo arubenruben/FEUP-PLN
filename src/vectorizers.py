@@ -3,7 +3,7 @@ from nltk import bigrams
 from collections import defaultdict
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
-from src.text_processing import tokenization
+from text_processing import tokenization
 
 
 def vectorize_bag_of_words(corpus, max_features=None, binary=False, lowercase=False):
@@ -33,11 +33,11 @@ def vectorize_tf_idf(corpus, max_features=None, lowercase=False):
     return X, vec, vectorizer
 
 def vectorize_bigrams(corpus, max_features=None):
-    vectorizer = CountVectorizer(ngram_range=(1,1), max_features=max_features)
+    vectorizer = CountVectorizer(ngram_range=(1,3), max_features=max_features)
 
     vec = vectorizer.fit(corpus)
 
-    X = vectorizer.transform(corpus)
+    X = vectorizer.transform(corpus).todense()
 
     return X, vec, vectorizer
 

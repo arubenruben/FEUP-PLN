@@ -102,13 +102,11 @@ def normalize_corpus(corpus):
         row = ' '.join([stemmer.stem(w) for w in word_list if not w in set(stopwords.words('portuguese'))])
         corpus_aux.append(row)
 
-        corpus_aux.append(row)
-
     return corpus_aux
 
 
 def split_train_test(X, y, test_size=0.20):
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, test_size=test_size)
 
     return X_train, X_test, y_train, y_test
 
@@ -132,11 +130,12 @@ def baseline(df_adu, df_text, algorithm='naive_bayes'):
     drop_columns(df_text, ['article_id', 'title', 'authors', 'meta_description',
                            'topics', 'keywords', 'publish_date', 'url_canonical'])
 
-    corpus = corpus_extraction(df_adu)
+    corpus = normalize_corpus(corpus_extraction(df_adu))
+    #corpus = corpus_extraction(df_adu)
 
     y = label_extraction(df_adu)
 
-    X, vec, vectorizer = vectorize_bag_of_words(corpus)
+    X, vec, vectorizer = vectorize_bag_of_words(corpus, max_features = 20000)
 
     size_vocabulary(vectorizer)
 
@@ -225,7 +224,7 @@ def test_different_features_sizes(df_adu, df_text, algorithm='knn'):
             evaluate_results(y_pred=y_pred, y_test=y_test)
 
 
-def baseline_with_normalization(df_adu, df_text, algorithm='decision_tree'):
+def baseline_with_normalization(df_adu, df_text, algorithm='naive_bayes'):
     drop_columns(df_adu, ['article_id', 'node', 'annotator'])
     drop_columns(df_text, ['article_id', 'title', 'authors', 'meta_description',
                            'topics', 'keywords', 'publish_date', 'url_canonical'])
@@ -236,9 +235,12 @@ def baseline_with_normalization(df_adu, df_text, algorithm='decision_tree'):
 
     X, vec, vectorizer = vectorize_bag_of_words(corpus)
 
+    size_vocabulary(vectorizer)
+
     X_train, X_test, y_train, y_test = split_train_test(X, y)
 
     clf = clf_factory(algorithm)
+
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
 
     evaluate_results(y_pred=y_pred, y_test=y_test)
@@ -373,7 +375,7 @@ def baseline_bigrams(df_adu, df_text, algorithm='naive_bayes'):
 
     y = label_extraction(df_adu)
 
-    X, vec, vectorizer = vectorize_bigrams(corpus)
+    X, vec, vectorizer = vectorize_bigrams(corpus, max_features=40000)
 
     X_train, X_test, y_train, y_test = split_train_test(X, y)
 
