@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import scipy
 import scipy as sp
-from vectorizers import vectorize_bigrams
 from imblearn.over_sampling import SMOTE
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
@@ -135,7 +134,8 @@ def baseline(df_adu, df_text, algorithm='naive_bayes'):
 
     y = label_extraction(df_adu)
 
-    X, vec, vectorizer = vectorize_bag_of_words(corpus, max_features = 20000)
+    # ngram_range=(1,3) ---> unigrams, bigrams and trigrams
+    X, vec, vectorizer = vectorize_bag_of_words(corpus,ngram_range=(1,3),max_features = 20000)
 
     size_vocabulary(vectorizer)
 
@@ -233,7 +233,7 @@ def baseline_with_normalization(df_adu, df_text, algorithm='naive_bayes'):
 
     y = label_extraction(df_adu)
 
-    X, vec, vectorizer = vectorize_bag_of_words(corpus)
+    X, vec, vectorizer = vectorize_bag_of_words(corpus,ngram_range=(1,3))
 
     size_vocabulary(vectorizer)
 
@@ -365,22 +365,3 @@ def model_for_each_annotator():
         print("Annotator D")
         baseline(df_adu, df_text)
         print("-------")
-
-def baseline_bigrams(df_adu, df_text, algorithm='naive_bayes'):
-    drop_columns(df_adu, ['article_id', 'node', 'annotator'])
-    drop_columns(df_text, ['article_id', 'title', 'authors', 'meta_description',
-                           'topics', 'keywords', 'publish_date', 'url_canonical'])
-    
-    corpus = corpus_extraction(df_adu)
-
-    y = label_extraction(df_adu)
-
-    X, vec, vectorizer = vectorize_bigrams(corpus, max_features=40000)
-
-    X_train, X_test, y_train, y_test = split_train_test(X, y)
-
-    clf = clf_factory(algorithm)
-
-    y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
-
-    evaluate_results(y_pred=y_pred, y_test=y_test)
