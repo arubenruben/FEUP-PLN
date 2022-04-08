@@ -22,6 +22,7 @@ from sklearn.tree import DecisionTreeClassifier
 from evaluation import evaluate_results
 from exploratory_analyses import size_vocabulary, outlier_detection, deal_with_outliers
 from other import drop_columns, load_dataset
+from src.lexicons import load_lexicons
 from src.text_processing import insert_previous_and_after_sentence_to_adu
 from vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
 
@@ -373,4 +374,55 @@ def baseline_with_all_paragraph(df_adu, df_text):
     # print(df_text.head())
     """
 
+    """
+
+
+def baseline_with_lexicons(df_adu):
+    load_lexicons()
+    drop_columns(df_adu, ['article_id', 'node'])
+
+    corpus = corpus_extraction(df_adu)
+
+    X, vec, vectorizer = vectorize_bag_of_words(corpus)
+
+    vocab = vec.get_feature_names_out()
+
+    X = pd.DataFrame(X, columns=vocab)
+
+    X['positive_words'] = 0
+    X['negative_words'] = 0
+
+    for row in X:
+        positives = 0
+        negatives = 0
+
+        for col in vocab:
+            if col == 0:
+                continue
+
+            positives += 1
+            negatives += 1
+
+            row['positive_words'] = positives
+            row['negative_words'] = negatives
+
+    """
+    Scipy Style Translation
+    """
+
+    print(X.head())
+
+    # X["annotator"] = ord_enc.fit_transform(df_adu[["annotator"]])
+    """
+    X = sparse.csr_matrix(X.values)
+
+    y = label_extraction(df_adu)
+
+    X_train, X_test, y_train, y_test = split_train_test(X.toarray(), y, 0.20)
+
+    clf = clf_factory('naive_bayes')
+
+    y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
+
+    evaluate_results(y_pred=y_pred, y_test=y_test)
     """
