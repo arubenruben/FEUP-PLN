@@ -4,8 +4,6 @@ import random
 import nltk
 import numpy as np
 import pandas as pd
-import scipy
-import scipy as sp
 from imblearn.over_sampling import SMOTE
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
@@ -14,7 +12,7 @@ from sklearn import preprocessing
 from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import MultinomialNB, GaussianNB, CategoricalNB, BernoulliNB
+from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OrdinalEncoder
@@ -23,7 +21,8 @@ from sklearn.tree import DecisionTreeClassifier
 
 from evaluation import evaluate_results
 from exploratory_analyses import size_vocabulary, outlier_detection, deal_with_outliers
-from other import drop_columns, write_df_to_file, load_dataset
+from other import drop_columns, load_dataset
+from src.text_processing import insert_previous_and_after_sentence_to_adu
 from vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
 
 
@@ -130,12 +129,12 @@ def baseline(df_adu, df_text, algorithm='naive_bayes'):
                            'topics', 'keywords', 'publish_date', 'url_canonical'])
 
     corpus = normalize_corpus(corpus_extraction(df_adu))
-    #corpus = corpus_extraction(df_adu)
+    # corpus = corpus_extraction(df_adu)
 
     y = label_extraction(df_adu)
 
     # ngram_range=(1,3) ---> unigrams, bigrams and trigrams
-    X, vec, vectorizer = vectorize_bag_of_words(corpus,ngram_range=(1,3),max_features = 20000)
+    X, vec, vectorizer = vectorize_bag_of_words(corpus, ngram_range=(1, 3), max_features=20000)
 
     size_vocabulary(vectorizer)
 
@@ -233,7 +232,7 @@ def baseline_with_normalization(df_adu, df_text, algorithm='naive_bayes'):
 
     y = label_extraction(df_adu)
 
-    X, vec, vectorizer = vectorize_bag_of_words(corpus,ngram_range=(1,3))
+    X, vec, vectorizer = vectorize_bag_of_words(corpus, ngram_range=(1, 3))
 
     size_vocabulary(vectorizer)
 
@@ -365,3 +364,13 @@ def model_for_each_annotator():
         print("Annotator D")
         baseline(df_adu, df_text)
         print("-------")
+
+
+def baseline_with_all_paragraph(df_adu, df_text):
+    insert_previous_and_after_sentence_to_adu(df_adu, df_text)
+    # print(df_adu.head())
+
+    # print(df_text.head())
+    """
+
+    """
