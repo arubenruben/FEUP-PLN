@@ -1,6 +1,13 @@
 import spacy
 
-nlp = spacy.load("pt_core_news_sm", disable=["tok2vec", "parser", "attribute_ruler", "lemmatizer"])
+nlp = spacy.load("pt_core_news_sm")
+
+"""
+    ADJ: adjective
+    INTJ: interjection
+    VERB: verb
+    PROPN: proper noun
+"""
 
 
 def get_pos_numbers(sentence):
@@ -10,14 +17,14 @@ def get_pos_numbers(sentence):
     number_verbs = 0
     number_proper_nouns = 0
 
-    """
-    ADJ: adjective
-    INTJ: interjection
-    VERB: verb
-    PROPN: proper
-    noun
-    """
     for token in doc:
-        print(token.text, token.pos_)
+        if token.pos_ == 'ADJ':
+            number_adj += 1
+        elif token.pos_ == 'INTJ':
+            number_interjections += 1
+        elif token.pos_ == 'VERB':
+            number_verbs += 1
+        elif token.pos_ == 'PROPN':
+            number_proper_nouns += 1
 
     return number_adj, number_interjections, number_verbs, number_proper_nouns

@@ -429,7 +429,7 @@ def baseline_with_lexicons(df_adu):
     X['positive_words'] = df_adu['positive_words']
     X['neutral_words'] = df_adu['neutral_words']
     X['negative_words'] = df_adu['negative_words']
-    #X['unknown_words'] = df_adu['unknown_words']
+    # X['unknown_words'] = df_adu['unknown_words']
 
     """
     Scipy Style Translation
@@ -453,6 +453,15 @@ def baseline_with_lexicons(df_adu):
 def baseline_with_pos(df_adu):
     drop_columns(df_adu, ['article_id', 'node'])
 
+    # TODO: Duplicated Tokenization going on here and on CountVectorizer
+
+    for i, row in df_adu.iterrows():
+        number_adj, number_interjections, number_verbs, number_proper_nouns = get_pos_numbers(row['tokens'])
+        df_adu.at[i, 'number_adj'] = number_adj
+        df_adu.at[i, 'number_interjections'] = number_interjections
+        df_adu.at[i, 'number_verbs'] = number_verbs
+        df_adu.at[i, 'number_proper_nouns'] = number_proper_nouns
+
     corpus = corpus_extraction(df_adu)
 
     X, vec, vectorizer = vectorize_bag_of_words(corpus)
@@ -461,14 +470,10 @@ def baseline_with_pos(df_adu):
 
     X = pd.DataFrame(X, columns=vocab)
 
-    for i, row in X.iterrows():
-        number_adj, number_interjections, number_verbs, number_proper_nouns = get_pos_numbers(row)
-
-        X.at[i, 'number_adj'] = number_adj
-        X.at[i, 'number_interjections'] = number_interjections
-        X.at[i, 'number_verbs'] = number_verbs
-        X.at[i, 'number_proper_nouns'] = number_proper_nouns
-        # X.at[i, 'unknown_words'] = unknowns
+    X['number_adj'] = df_adu['number_adj']
+    X['number_interjections'] = df_adu['number_interjections']
+    X['number_verbs'] = df_adu['number_verbs']
+    X['number_proper_nouns'] = df_adu['number_proper_nouns']
 
     """
     Scipy Style Translation
