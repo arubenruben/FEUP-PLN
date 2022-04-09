@@ -24,7 +24,7 @@ from exploratory_analyses import size_vocabulary, outlier_detection, deal_with_o
 from other import drop_columns, load_dataset, write_new_csv_datatest
 from src.lexicons import load_lexicons, get_polarity
 from src.pos import get_pos_numbers
-from src.text_processing import insert_previous_and_after_sentence_to_adu
+from src.text_processing import insert_previous_and_after_sentence_to_adu, tokenization
 from vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
 
 
@@ -383,31 +383,24 @@ def baseline_with_lexicons(df_adu):
 
     drop_columns(df_adu, ['article_id', 'node'])
 
-    corpus = corpus_extraction(df_adu)
+    # TODO: Tokenazation is Duplicated in Vectorize Bag of Words
 
-    X, vec, vectorizer = vectorize_bag_of_words(corpus)
+    df_adu['positive_words'] = 0
+    df_adu['neutral_words'] = 0
+    df_adu['negative_words'] = 0
+    # df_adu['unknown_words'] = 0
 
-    vocab = vec.get_feature_names_out()
-
-    X = pd.DataFrame(X, columns=vocab)
-
-    X['positive_words'] = 0
-    X['neutral_words'] = 0
-    X['negative_words'] = 0
-    X['unknown_words'] = 0
-
-    for i, row in X.iterrows():
+    for i, row in df_adu.iterrows():
         positives = 0
         neutrals = 0
         negatives = 0
         unknowns = 0
 
-        for col in vocab:
+        list_tokens = tokenization(row['tokens'])
 
-            if row.at[col] == 0:
-                continue
+        for token in list_tokens:
 
-            polarity = get_polarity(col)
+            polarity = get_polarity(token)
 
             if polarity == -1:
                 negatives += 1
@@ -418,16 +411,29 @@ def baseline_with_lexicons(df_adu):
             elif polarity == 2:
                 unknowns += 1
 
-        X.at[i, 'positive_words'] = positives
-        X.at[i, 'neutral_words'] = neutrals
-        X.at[i, 'negative_words'] = negatives
-        # X.at[i, 'unknown_words'] = unknowns
+        df_adu.at[i, 'positive_words'] = positives
+        df_adu.at[i, 'neutral_words'] = neutrals
+        df_adu.at[i, 'negative_words'] = negatives
+        # df_adu.at[i, 'unknown_words'] = unknowns
+
+    write_new_csv_datatest(df_adu, 'dataset_with_lexicons')
+
+    corpus = corpus_extraction(df_adu)
+
+    X, vec, vectorizer = vectorize_bag_of_words(corpus)
+
+    vocab = vec.get_feature_names_out()
+
+    X = pd.DataFrame(X, columns=vocab)
+
+    X['positive_words'] = df_adu['positive_words']
+    X['neutral_words'] = df_adu['neutral_words']
+    X['negative_words'] = df_adu['negative_words']
+    #X['unknown_words'] = df_adu['unknown_words']
 
     """
     Scipy Style Translation
     """
-
-    # write_new_csv_datatest(X, 'dataset_with_lexicons')
 
     X = sparse.csr_matrix(X.values)
 
