@@ -61,3 +61,21 @@ def insert_previous_and_after_sentence_to_adu(df_adu, df_text):
                 break
 
     write_new_csv_datatest(df_adu, "neighbours_sentence")
+
+
+def normalize_corpus(corpus):
+    corpus_aux = []
+
+    for row in corpus:
+        filtered_list = []
+
+        for token in tokenization(row):
+
+            if is_stop_word(token):
+                continue
+
+            filtered_list.append(stemming(token))
+
+        corpus_aux.append(''.join(filtered_list))
+
+    return corpus_aux

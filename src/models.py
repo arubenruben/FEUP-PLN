@@ -1,15 +1,9 @@
-# import spacy
 import random
-import string
 
-import nltk
 import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
-from nltk.corpus import stopwords
-from nltk.stem import SnowballStemmer
 from scipy import sparse
-from sklearn import preprocessing
 from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
@@ -25,13 +19,13 @@ from exploratory_analyses import size_vocabulary, outlier_detection, deal_with_o
 from other import drop_columns, load_dataset, write_new_csv_datatest
 from src.lexicons import load_lexicons, get_polarity
 from src.pos import get_pos_numbers
-from src.text_processing import insert_previous_and_after_sentence_to_adu, tokenization, is_stop_word, stemming
+from src.text_processing import insert_previous_and_after_sentence_to_adu, tokenization, normalize_corpus
 from vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
 
 
 def clf_factory(algorithm, *params):
     if algorithm == 'naive_bayes':
-        return GaussianNB(*params)
+        return GaussianNB()
 
     if algorithm == 'knn':
         return KNeighborsClassifier(*params)
@@ -40,10 +34,10 @@ def clf_factory(algorithm, *params):
         return LogisticRegression(max_iter=1000, *params)
 
     if algorithm == 'svm':
-        return SVC(*params)
+        return SVC()
 
     if algorithm == 'decision_tree':
-        return DecisionTreeClassifier(*params)
+        return DecisionTreeClassifier()
 
     if algorithm == 'bagging':
         return BaggingClassifier(*params)
@@ -55,13 +49,6 @@ def clf_factory(algorithm, *params):
         return MLPClassifier(*params)
 
     raise "Invalid Algorithm"
-
-
-def join_datasets(df_adu, df_text):
-    """
-        Join By Some Criteria
-    """
-    return df_adu
 
 
 def corpus_extraction(df):
@@ -82,24 +69,6 @@ def label_extraction(df):
     return np.array(labels)
 
 
-def normalize_corpus(corpus):
-    corpus_aux = []
-
-    for row in corpus:
-        filtered_list = []
-
-        for token in tokenization(row):
-
-            if is_stop_word(token):
-                continue
-
-            filtered_list.append(stemming(token))
-
-        corpus_aux.append(''.join(filtered_list))
-
-    return corpus_aux
-
-
 def split_train_test(X, y, test_size=0.20):
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, test_size=test_size)
 
@@ -114,12 +83,6 @@ def apply_clf(clf, X_train, y_train, X_test):
     return y_pred
 
 
-def label_encoding(y):
-    encoder = preprocessing.LabelEncoder()
-    y = encoder.fit_transform([1, 2, 2, 6])
-    return y, encoder
-
-
 def baseline(df_adu, df_text, algorithm='naive_bayes'):
     drop_columns(df_adu, ['article_id', 'node', 'annotator'])
     drop_columns(df_text, ['article_id', 'title', 'authors', 'meta_description',
@@ -129,7 +92,7 @@ def baseline(df_adu, df_text, algorithm='naive_bayes'):
 
     y = label_extraction(df_adu)
 
-    # ngram_range=(1,3) ---> unigrams, bigrams and trigrams
+    # ngram_range=(1,3) ---> uni-grams, bi-grams and trigrams
     X, vec, vectorizer = vectorize_bag_of_words(corpus, ngram_range=(1, 3), max_features=20000)
 
     size_vocabulary(vectorizer)
@@ -143,7 +106,7 @@ def baseline(df_adu, df_text, algorithm='naive_bayes'):
     evaluate_results(y_pred=y_pred, y_test=y_test)
 
 
-def test_tf_idf(df_adu, df_text, algorithm='naive_bayes'):
+def test_tf_idf(df_adu, algorithm='naive_bayes'):
     drop_columns(df_adu, ['article_id', 'node', 'annotator'])
 
     corpus = corpus_extraction(df_adu)
@@ -379,7 +342,7 @@ def baseline_with_lexicons(df_adu):
 
     drop_columns(df_adu, ['article_id', 'node'])
 
-    # TODO: Tokenazation is Duplicated in Vectorize Bag of Words
+    # TODO: Tokenization is Duplicated in Vectorize Bag of Words
 
     df_adu['positive_words'] = 0
     df_adu['neutral_words'] = 0
