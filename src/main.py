@@ -5,8 +5,8 @@ from testing import load_classifier
 
 def main():
     # dev()
-    # prod()
-    load_classifier()
+    prod()
+    # load_classifier()
 
 
 def dev():
@@ -23,7 +23,15 @@ def dev():
 
 
 def prod():
+    print("Loading Dataset")
+
     df_adu, _ = load_dataset(text_augmentation=True)
+
+    print("Start Removing Disagreements")
+
+    dict_collisions = outlier_detection(df_adu)
+
+    deal_with_outliers(df_adu, dict_collisions, 'delete')
 
     drop_columns(df_adu, ['article_id', 'node', 'annotator'])
 
@@ -31,7 +39,7 @@ def prod():
     corpus = normalize_corpus(corpus_extraction(df_adu))
 
     print("Start Vectorize")
-    X, vec, vectorizer = vectorize_bag_of_words(corpus, ngram_range=(1, 3), max_features=1000)
+    X, vec, vectorizer = vectorize_tf_idf(corpus, ngram_range=(1, 3), max_features=25000)
 
     y = label_extraction(df_adu)
 
