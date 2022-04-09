@@ -2,6 +2,7 @@ import os.path
 import pandas as pd
 
 from src.other import drop_columns
+from collections import defaultdict
 
 lexicons = pd.DataFrame()
 
@@ -12,6 +13,25 @@ def load_lexicons():
     lexicons = pd.read_csv(os.path.join('dataset', 'lexicons', 'lexico_v3.0.csv'))
 
     drop_columns(lexicons, ['type', 'idk'])
+
+    lexicons = lexicons.to_dict('records')
+    """
+    res = defaultdict(list)
+    for sub in lexicons:
+        for key in sub:
+            res[key].append(sub[key])
+
+    lexicons = res
+    """
+
+    newDict = {}
+
+    for element in lexicons:
+        newDict[element['token']] = element['polarity']
+
+    lexicons = newDict
+
+    # print(newDict)
 
 
 """
@@ -25,12 +45,10 @@ def load_lexicons():
 
 
 def get_polarity(word: str) -> int:
-    df_polarity = lexicons[lexicons['token'] == word.lower()]
-
-    if len(df_polarity.index) == 0:
+    if word.lower() not in lexicons.keys():
         return 2
 
-    polarity = df_polarity.iloc[0]['polarity']
+    polarity = lexicons[word.lower()]
 
     # print(f"Polarity of {word} is: {polarity}")
 

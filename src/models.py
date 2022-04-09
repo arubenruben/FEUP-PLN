@@ -21,7 +21,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from evaluation import evaluate_results
 from exploratory_analyses import size_vocabulary, outlier_detection, deal_with_outliers
-from other import drop_columns, load_dataset
+from other import drop_columns, load_dataset, write_new_csv_datatest
 from src.lexicons import load_lexicons, get_polarity
 from src.text_processing import insert_previous_and_after_sentence_to_adu
 from vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
@@ -403,6 +403,9 @@ def baseline_with_lexicons(df_adu):
 
         for col in vocab:
 
+            if row.at[col] == 0:
+                continue
+
             polarity = get_polarity(col)
 
             if polarity == -1:
@@ -411,21 +414,22 @@ def baseline_with_lexicons(df_adu):
                 neutrals += 1
             elif polarity == 1:
                 positives += 1
-            elif unknowns == 2:
+            elif polarity == 2:
                 unknowns += 1
 
         X.at[i, 'positive_words'] = positives
         X.at[i, 'neutral_words'] = neutrals
         X.at[i, 'negative_words'] = negatives
-        X.at[i, 'unknown_words'] = unknowns
+        # X.at[i, 'unknown_words'] = unknowns
 
+        if i == 5:
+            break
     """
     Scipy Style Translation
     """
 
-    print(X.head())
+    # write_new_csv_datatest(X, 'dataset_with_lexicons')
 
-    """
     X = sparse.csr_matrix(X.values)
 
     y = label_extraction(df_adu)
@@ -437,4 +441,5 @@ def baseline_with_lexicons(df_adu):
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
 
     evaluate_results(y_pred=y_pred, y_test=y_test)
+    """
     """

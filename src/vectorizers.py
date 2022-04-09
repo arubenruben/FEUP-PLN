@@ -1,13 +1,11 @@
-import nltk
-from nltk import bigrams
-from collections import defaultdict
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
 from text_processing import tokenization
 
 
-def vectorize_bag_of_words(corpus, ngram_range=(1,1), max_features=None, binary=False, lowercase=False):
-    vectorizer = CountVectorizer(tokenizer=tokenization, token_pattern=None, ngram_range=ngram_range, max_features=max_features, binary=binary,
+def vectorize_bag_of_words(corpus, ngram_range=(1, 1), max_features=None, binary=False, lowercase=False):
+    vectorizer = CountVectorizer(tokenizer=tokenization, token_pattern=None, ngram_range=ngram_range,
+                                 max_features=max_features, binary=binary,
                                  lowercase=lowercase)
 
     vec = vectorizer.fit(corpus)
