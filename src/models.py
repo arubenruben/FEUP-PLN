@@ -22,7 +22,7 @@ from sklearn.tree import DecisionTreeClassifier
 from evaluation import evaluate_results
 from exploratory_analyses import size_vocabulary, outlier_detection, deal_with_outliers
 from other import drop_columns, load_dataset
-from src.lexicons import load_lexicons
+from src.lexicons import load_lexicons, get_polarity
 from src.text_processing import insert_previous_and_after_sentence_to_adu
 from vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
 
@@ -379,6 +379,7 @@ def baseline_with_all_paragraph(df_adu, df_text):
 
 def baseline_with_lexicons(df_adu):
     load_lexicons()
+
     drop_columns(df_adu, ['article_id', 'node'])
 
     corpus = corpus_extraction(df_adu)
@@ -390,21 +391,33 @@ def baseline_with_lexicons(df_adu):
     X = pd.DataFrame(X, columns=vocab)
 
     X['positive_words'] = 0
+    X['neutral_words'] = 0
     X['negative_words'] = 0
+    X['unknown_words'] = 0
 
-    for row in X:
+    for i, row in X.iterrows():
         positives = 0
+        neutrals = 0
         negatives = 0
+        unknowns = 0
 
         for col in vocab:
-            if col == 0:
-                continue
 
-            positives += 1
-            negatives += 1
+            polarity = get_polarity(col)
 
-            row['positive_words'] = positives
-            row['negative_words'] = negatives
+            if polarity == -1:
+                negatives += 1
+            elif polarity == 0:
+                neutrals += 1
+            elif polarity == 1:
+                positives += 1
+            elif unknowns == 2:
+                unknowns += 1
+
+        X.at[i, 'positive_words'] = positives
+        X.at[i, 'neutral_words'] = neutrals
+        X.at[i, 'negative_words'] = negatives
+        X.at[i, 'unknown_words'] = unknowns
 
     """
     Scipy Style Translation
@@ -412,7 +425,6 @@ def baseline_with_lexicons(df_adu):
 
     print(X.head())
 
-    # X["annotator"] = ord_enc.fit_transform(df_adu[["annotator"]])
     """
     X = sparse.csr_matrix(X.values)
 

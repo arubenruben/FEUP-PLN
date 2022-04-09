@@ -15,16 +15,16 @@ def load_lexicons():
 
 
 """
-Words are lowercase because lexicons are all lowercase
-
-Negative connotation:-1
-Neutral connotation:0
-Positive connotation:1
-Unknown connotation:2
+    Words are lowercase because lexicons are all lowercase
+    
+    Negative connotation:-1
+    Neutral connotation:0
+    Positive connotation:1
+    Unknown connotation:2
 """
 
 
-def get_polarity(word: str):
+def get_polarity(word: str) -> int:
     df_polarity = lexicons[lexicons['token'] == word.lower()]
 
     if len(df_polarity.index) == 0:
@@ -32,6 +32,6 @@ def get_polarity(word: str):
 
     polarity = df_polarity.iloc[0]['polarity']
 
-    print(f"Polarity of {word} is: {polarity}")
+    # print(f"Polarity of {word} is: {polarity}")
 
     return polarity
