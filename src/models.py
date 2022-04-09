@@ -1,5 +1,6 @@
 # import spacy
 import random
+import string
 
 import nltk
 import numpy as np
@@ -95,11 +96,13 @@ def normalize_corpus(corpus):
     '''
 
     stemmer = SnowballStemmer('portuguese')
-
+    #print(corpus[1])
     for row in corpus:
         word_list = nltk.word_tokenize(row)
-        row = ' '.join([stemmer.stem(w) for w in word_list if not w in set(stopwords.words('portuguese'))])
-        corpus_aux.append(row)
+        row_aux = ' '.join([stemmer.stem(w) for w in word_list if w.isalpha() and not w in set(stopwords.words('portuguese'))])
+        corpus_aux.append(row_aux)
+
+    print(corpus_aux[1])
 
     return corpus_aux
 
@@ -129,8 +132,7 @@ def baseline(df_adu, df_text, algorithm='naive_bayes'):
     drop_columns(df_text, ['article_id', 'title', 'authors', 'meta_description',
                            'topics', 'keywords', 'publish_date', 'url_canonical'])
 
-    corpus = normalize_corpus(corpus_extraction(df_adu))
-    #corpus = corpus_extraction(df_adu)
+    corpus = corpus_extraction(df_adu)
 
     y = label_extraction(df_adu)
 
@@ -233,7 +235,7 @@ def baseline_with_normalization(df_adu, df_text, algorithm='naive_bayes'):
 
     y = label_extraction(df_adu)
 
-    X, vec, vectorizer = vectorize_bag_of_words(corpus,ngram_range=(1,3))
+    X, vec, vectorizer = vectorize_bag_of_words(corpus, ngram_range=(1,3), max_features=20000)
 
     size_vocabulary(vectorizer)
 
