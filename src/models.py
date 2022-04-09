@@ -23,6 +23,7 @@ from evaluation import evaluate_results
 from exploratory_analyses import size_vocabulary, outlier_detection, deal_with_outliers
 from other import drop_columns, load_dataset, write_new_csv_datatest
 from src.lexicons import load_lexicons, get_polarity
+from src.pos import get_pos_numbers
 from src.text_processing import insert_previous_and_after_sentence_to_adu
 from vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
 
@@ -422,8 +423,6 @@ def baseline_with_lexicons(df_adu):
         X.at[i, 'negative_words'] = negatives
         # X.at[i, 'unknown_words'] = unknowns
 
-        if i == 5:
-            break
     """
     Scipy Style Translation
     """
@@ -443,3 +442,42 @@ def baseline_with_lexicons(df_adu):
     evaluate_results(y_pred=y_pred, y_test=y_test)
     """
     """
+
+
+def baseline_with_pos(df_adu):
+    drop_columns(df_adu, ['article_id', 'node'])
+
+    corpus = corpus_extraction(df_adu)
+
+    X, vec, vectorizer = vectorize_bag_of_words(corpus)
+
+    vocab = vec.get_feature_names_out()
+
+    X = pd.DataFrame(X, columns=vocab)
+
+    for i, row in X.iterrows():
+        number_adj, number_interjections, number_verbs, number_proper_nouns = get_pos_numbers(row)
+
+        X.at[i, 'number_adj'] = number_adj
+        X.at[i, 'number_interjections'] = number_interjections
+        X.at[i, 'number_verbs'] = number_verbs
+        X.at[i, 'number_proper_nouns'] = number_proper_nouns
+        # X.at[i, 'unknown_words'] = unknowns
+
+    """
+    Scipy Style Translation
+    """
+
+    # write_new_csv_datatest(X, 'dataset_with_lexicons')
+
+    X = sparse.csr_matrix(X.values)
+
+    y = label_extraction(df_adu)
+
+    X_train, X_test, y_train, y_test = split_train_test(X.toarray(), y, 0.20)
+
+    clf = clf_factory('naive_bayes')
+
+    y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
+
+    evaluate_results(y_pred=y_pred, y_test=y_test)
