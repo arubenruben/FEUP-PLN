@@ -1,6 +1,5 @@
 from models import *
 from other import load_dataset
-from src.text_processing import lemmatization
 
 
 def main():

@@ -1,5 +1,3 @@
-import random
-
 import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
@@ -143,43 +141,6 @@ def test_1_hot_vector(df_adu, df_text, algorithm='naive_bayes'):
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
 
     evaluate_results(y_pred=y_pred, y_test=y_test)
-
-
-def test_different_features_sizes(df_adu, df_text, algorithm='knn'):
-    """
-    The First Iteration Must Collect the vocabulary size
-    """
-
-    drop_columns(df_adu, ['article_id', 'node', 'annotator'])
-    drop_columns(df_text, ['article_id', 'title', 'authors', 'meta_description',
-                           'topics', 'keywords', 'publish_date', 'url_canonical'])
-
-    corpus_base = normalize_corpus(corpus_extraction(df_adu))
-
-    y = label_extraction(df_adu)
-
-    for i in range(10):
-        if i == 0:
-            vec_len = 0
-
-        corpus = corpus_base.copy()
-
-        if i == 0:
-            X, vec, vectorizer = vectorize_tf_idf(corpus)
-            vec_len = size_vocabulary(vectorizer)
-        else:
-            rand_int = random.randint(1, vec_len)
-            X, vec, vectorizer = vectorize_tf_idf(corpus, rand_int)
-
-            X_train, X_test, y_train, y_test = split_train_test(X, y)
-
-            clf = clf_factory(algorithm)
-
-            y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
-
-            print(f"Results for {rand_int}")
-
-            evaluate_results(y_pred=y_pred, y_test=y_test)
 
 
 def baseline_with_normalization(df_adu, df_text, algorithm='naive_bayes'):
@@ -333,7 +294,6 @@ def model_for_each_annotator():
 def baseline_with_all_paragraph(df_adu, df_text):
     insert_previous_and_after_sentence_to_adu(df_adu, df_text)
     # print(df_adu.head())
-
     # print(df_text.head())
 
 
@@ -342,12 +302,10 @@ def baseline_with_lexicons(df_adu):
 
     drop_columns(df_adu, ['article_id', 'node'])
 
-    # TODO: Tokenization is Duplicated in Vectorize Bag of Words
-
     df_adu['positive_words'] = 0
     df_adu['neutral_words'] = 0
     df_adu['negative_words'] = 0
-    # df_adu['unknown_words'] = 0
+    df_adu['unknown_words'] = 0
 
     for i, row in df_adu.iterrows():
         positives = 0
@@ -373,7 +331,7 @@ def baseline_with_lexicons(df_adu):
         df_adu.at[i, 'positive_words'] = positives
         df_adu.at[i, 'neutral_words'] = neutrals
         df_adu.at[i, 'negative_words'] = negatives
-        # df_adu.at[i, 'unknown_words'] = unknowns
+        df_adu.at[i, 'unknown_words'] = unknowns
 
     write_new_csv_datatest(df_adu, 'dataset_with_lexicons')
 
