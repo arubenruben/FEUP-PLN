@@ -17,7 +17,7 @@ def drop_columns(df, columns_to_drop: list):
 
 def load_dataset():
     df_text = pd.DataFrame(pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles.csv')))
-    df_adu = pd.DataFrame(pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles_ADUs_translator.csv')))
+    df_adu = pd.DataFrame(pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles_ADUs.csv')))
     create_index_column(df_adu)
     return df_adu, df_text
 

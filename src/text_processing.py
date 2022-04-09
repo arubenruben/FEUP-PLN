@@ -2,6 +2,7 @@ import nltk
 import spacy as spacy
 from nltk import tokenize, SnowballStemmer
 from nltk.corpus import stopwords
+import re
 
 from src.other import write_new_csv_datatest
 
@@ -22,7 +23,7 @@ def lemmatization(sentence):
     for token in nlp(sentence):
         lemmas.append(token.lemma_)
 
-    return ''.join(lemmas)
+    return ' '.join(lemmas)
 
 
 def stemming(token):
@@ -63,6 +64,10 @@ def insert_previous_and_after_sentence_to_adu(df_adu, df_text):
     write_new_csv_datatest(df_adu, "neighbours_sentence")
 
 
+def remove_punctuation(sentence):
+    return re.sub(r'[^\w\s]', '', sentence)
+
+
 def normalize_corpus(corpus):
     corpus_aux = []
 
@@ -74,8 +79,14 @@ def normalize_corpus(corpus):
             if is_stop_word(token):
                 continue
 
-            filtered_list.append(stemming(token))
+            # filtered_list.append(stemming(token))
+            
+            filtered_list.append(token)
 
-        corpus_aux.append(''.join(filtered_list))
+        sentence_without_punctuation = remove_punctuation(' '.join(filtered_list))
+
+        corpus_aux.append(sentence_without_punctuation)
+
+    # print(corpus_aux)
 
     return corpus_aux
