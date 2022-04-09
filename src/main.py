@@ -4,7 +4,6 @@ from other import load_dataset
 
 def main():
     df_adu, df_text = load_dataset()
-    
     #baseline_with_normalization(df_adu, df_text)
     #baseline(df_adu, df_text, algorithm="decision_tree")
     baseline(df_adu, df_text)
