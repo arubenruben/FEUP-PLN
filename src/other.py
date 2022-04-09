@@ -1,6 +1,6 @@
 import os
 import random
-
+from joblib import dump, load
 import pandas as pd
 
 
@@ -64,3 +64,11 @@ def add_xlsx_to_df(df_adu, column_1, value):
     df_adu = df_adu.append(df_value, ignore_index=True)
     df_adu.to_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles_ADUs_translator.csv'), index=None,
                   header=True)
+
+
+def save_classifier_to_disk(clf, clf_name):
+    dump(clf, os.path.join('classifiers', f"{clf_name}_{random.randint(0, 90000).__str__()}.joblib"))
+
+
+def load_classifier_from_disk(filename):
+    return load(os.path.join('classifiers', f"{filename.replace('.joblib', '')}.joblib"))
