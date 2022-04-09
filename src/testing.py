@@ -42,7 +42,7 @@ def test_different_features_sizes(df_adu, df_text, algorithm='knn'):
 
             print(f"Results for {rand_int}")
 
-            evaluate_results(y_pred=y_pred, y_test=y_test)
+            evaluate_results(y_pred=y_pred, y_test=y_test, clf=clf, X_test=X_test)
 
 
 def load_classifier():
@@ -72,4 +72,4 @@ def load_classifier():
 
     print("Start Evaluating")
 
-    evaluate_results(y_pred=y_pred, y_test=y_test)
+    evaluate_results(y_pred=y_pred, y_test=y_test, clf=clf, X_test=X_test)
