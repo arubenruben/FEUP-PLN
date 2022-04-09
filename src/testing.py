@@ -1,11 +1,11 @@
 import random
 
-from src.evaluation import evaluate_results
-from src.exploratory_analyses import size_vocabulary
-from src.models import split_train_test, clf_factory, apply_clf, corpus_extraction, label_extraction
-from src.other import drop_columns
-from src.text_processing import normalize_corpus
-from src.vectorizers import vectorize_tf_idf
+from evaluation import evaluate_results
+from exploratory_analyses import size_vocabulary
+from models import split_train_test, clf_factory, apply_clf, corpus_extraction, label_extraction
+from other import drop_columns
+from text_processing import normalize_corpus
+from vectorizers import vectorize_tf_idf
 
 
 def test_different_features_sizes(df_adu, df_text, algorithm='knn'):

@@ -4,7 +4,7 @@ from nltk import tokenize, SnowballStemmer
 from nltk.corpus import stopwords
 import re
 
-from src.other import write_new_csv_datatest
+from other import write_new_csv_datatest
 
 nlp = spacy.load("pt_core_news_sm")
 

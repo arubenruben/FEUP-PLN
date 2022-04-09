@@ -15,9 +15,9 @@ from sklearn.tree import DecisionTreeClassifier
 from evaluation import evaluate_results
 from exploratory_analyses import size_vocabulary, outlier_detection, deal_with_outliers
 from other import drop_columns, load_dataset, write_new_csv_datatest
-from src.lexicons import load_lexicons, get_polarity
-from src.pos import get_pos_numbers
-from src.text_processing import insert_previous_and_after_sentence_to_adu, tokenization, normalize_corpus
+from lexicons import load_lexicons, get_polarity
+from pos import get_pos_numbers
+from text_processing import insert_previous_and_after_sentence_to_adu, tokenization, normalize_corpus
 from vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
 
 

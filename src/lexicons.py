@@ -1,8 +1,8 @@
 import os.path
+
 import pandas as pd
 
-from src.other import drop_columns
-from collections import defaultdict
+from other import drop_columns
 
 lexicons = pd.DataFrame()
 
