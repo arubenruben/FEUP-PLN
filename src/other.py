@@ -17,7 +17,7 @@ def drop_columns(df, columns_to_drop: list):
 
 def load_dataset():
     df_text = pd.DataFrame(pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles.csv')))
-    df_adu = pd.DataFrame(pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles_ADUs.csv')))
+    df_adu = pd.DataFrame(pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles_ADUs_translator.csv')))
     create_index_column(df_adu)
     return df_adu, df_text
 
@@ -55,5 +55,5 @@ def add_xlsx_to_df(df_adu, column_1, value):
         df_value.at[index,column_1] = df_column.loc[index].at[column_1]
 
     df_adu = df_adu.append(df_value, ignore_index=True)
-    df_adu.to_csv(os.path.join(os.path.dirname(__file__),'dataset', 'OpArticles_ADUs.csv'), index=None, header=True)
+    df_adu.to_csv(os.path.join(os.path.dirname(__file__),'dataset', 'OpArticles_ADUs_translator.csv'), index=None, header=True)
 

@@ -25,7 +25,7 @@ from exploratory_analyses import size_vocabulary, outlier_detection, deal_with_o
 from other import drop_columns, load_dataset, write_new_csv_datatest
 from src.lexicons import load_lexicons, get_polarity
 from src.pos import get_pos_numbers
-from src.text_processing import insert_previous_and_after_sentence_to_adu, tokenization
+from src.text_processing import insert_previous_and_after_sentence_to_adu, tokenization, is_stop_word, stemming
 from vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
 
 
@@ -85,25 +85,17 @@ def label_extraction(df):
 def normalize_corpus(corpus):
     corpus_aux = []
 
-    ''' Lemmatizer
-    nlp = spacy.load("pt_core_news_sm")
-    
-    for doc in nlp.pipe(corpus, batch_size=32, n_process=3, disable=["parser", "ner"]):
-        lemmas = []
-        for token in doc:
-            lemmas.append(token.lemma_)
-
-        row = ' '.join([w for w in lemmas if w not in set(stopwords.words('portuguese'))])
-    '''
-
-    stemmer = SnowballStemmer('portuguese')
-    #print(corpus[1])
     for row in corpus:
-        word_list = nltk.word_tokenize(row)
-        row_aux = ' '.join([stemmer.stem(w) for w in word_list if w.isalpha() and not w in set(stopwords.words('portuguese'))])
-        corpus_aux.append(row_aux)
+        filtered_list = []
 
-    print(corpus_aux[1])
+        for token in tokenization(row):
+
+            if is_stop_word(token):
+                continue
+
+            filtered_list.append(stemming(token))
+
+        corpus_aux.append(''.join(filtered_list))
 
     return corpus_aux
 
@@ -233,19 +225,19 @@ def baseline_with_normalization(df_adu, df_text, algorithm='naive_bayes'):
                            'topics', 'keywords', 'publish_date', 'url_canonical'])
 
     corpus = normalize_corpus(corpus_extraction(df_adu))
-
+    print("Normalization Done")
     y = label_extraction(df_adu)
 
-    X, vec, vectorizer = vectorize_bag_of_words(corpus, ngram_range=(1,3), max_features=20000)
-
+    X, vec, vectorizer = vectorize_bag_of_words(corpus, max_features=20000)
+    print("Vectorization done")
     size_vocabulary(vectorizer)
 
     X_train, X_test, y_train, y_test = split_train_test(X, y)
-
+    print("Train Test Split done")
     clf = clf_factory(algorithm)
 
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
-
+    print("Apply Model Done")
     evaluate_results(y_pred=y_pred, y_test=y_test)
 
 
@@ -370,14 +362,16 @@ def model_for_each_annotator():
         print("-------")
 
 
+"""
+    Lots of Duplicates
+"""
+
+
 def baseline_with_all_paragraph(df_adu, df_text):
     insert_previous_and_after_sentence_to_adu(df_adu, df_text)
     # print(df_adu.head())
 
     # print(df_text.head())
-    """
-
-    """
 
 
 def baseline_with_lexicons(df_adu):

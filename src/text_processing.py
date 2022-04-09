@@ -1,12 +1,36 @@
 import nltk
-from nltk import tokenize
+import spacy as spacy
+from nltk import tokenize, SnowballStemmer
+from nltk.corpus import stopwords
 
-# TODO:Insert Transformation In this File
 from src.other import write_new_csv_datatest
 
+nlp = spacy.load("pt_core_news_sm")
 
-def tokenization(text):
-    return tokenize.word_tokenize(text, language='portuguese')
+stemmer = SnowballStemmer('portuguese')
+
+stop_words = set(stopwords.words('portuguese'))
+
+
+def tokenization(sentence):
+    return tokenize.word_tokenize(sentence, language='portuguese')
+
+
+def lemmatization(sentence):
+    lemmas = []
+
+    for token in nlp(sentence):
+        lemmas.append(token.lemma_)
+
+    return ''.join(lemmas)
+
+
+def stemming(token):
+    return stemmer.stem(token)
+
+
+def is_stop_word(token):
+    return token in stop_words
 
 
 def sentence_segmentation(raw_text):
