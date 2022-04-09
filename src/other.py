@@ -1,9 +1,7 @@
 import os
 import random
 
-import numpy as np
 import pandas as pd
-import scipy.sparse as sp
 
 
 def convert_xlsx_to_csv(filename):
@@ -28,8 +26,12 @@ def create_index_column(df):
     df["id"] = df.index + 1
 
 
-def write_df_to_file(df):
+def write_df_result_to_random_file(df):
     df.to_csv(os.path.join('results', f"{random.randint(0, 90000).__str__()}.csv"))
+
+
+def write_new_csv_datatest(df, filename):
+    df.to_csv(os.path.join('dataset', f"{filename.replace('.csv', '')}.csv"), index=False)
 
 
 def remove_dataframe_rows_by_id(df_to_remove, list_ids_to_remove):
