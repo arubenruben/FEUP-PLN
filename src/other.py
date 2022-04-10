@@ -16,13 +16,13 @@ def drop_columns(df, columns_to_drop: list):
 
 def load_dataset(text_augmentation=False):
     df_text = pd.DataFrame(pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles.csv')))
-
+    
     if not text_augmentation:
         df_adu = pd.DataFrame(pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles_ADUs.csv')))
     else:
         df_adu = pd.DataFrame(
             pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles_ADUs_translator.csv')))
-
+    
     create_index_column(df_adu)
     return df_adu, df_text
 
@@ -53,15 +53,20 @@ def column_to_csv_conditional(df, column_1, column_2, value):
     df_value[column_1].to_excel(os.path.join(os.path.dirname(__file__), 'dataset', column_1 + '.xlsx'), header=True)
 
 
-def add_xlsx_to_df(df_adu, column_1, value):
+def add_xlsx_to_df(df, column_1, value):
     df_value = pd.read_excel(os.path.join(os.path.dirname(__file__), 'dataset', value + '.xlsx'), index_col=0)
     df_column = pd.read_excel(os.path.join(os.path.dirname(__file__), 'dataset', column_1 + '.xlsx'), index_col=0)
 
     for index, _ in df_value.iterrows():
-        df_value.at[index, column_1] = df_column.loc[index].at[column_1]
+        cell = df_column.loc[index].at[column_1]
 
-    df_adu = df_adu.append(df_value, ignore_index=True)
-    df_adu.to_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles_ADUs_translator.csv'), index=None,
+        if df_value.loc[index].at[column_1] == cell:
+            df_value = df_value.drop(index)
+        else:
+            df_value.at[index, column_1] = cell
+
+    df = df.append(df_value, ignore_index=True)
+    df.to_csv(os.path.join(os.path.dirname(__file__),'dataset', 'OpArticles_ADUs_translator.csv'), index=None,
                   header=True)
 
 
