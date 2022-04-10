@@ -79,9 +79,7 @@ def normalize_corpus(corpus):
             if is_stop_word(token):
                 continue
 
-            # filtered_list.append(stemming(token))
-            
-            filtered_list.append(token)
+            filtered_list.append(stemming(token))
 
         sentence_without_punctuation = remove_punctuation(' '.join(filtered_list))
 

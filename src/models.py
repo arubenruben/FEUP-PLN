@@ -421,3 +421,10 @@ def baseline_with_pos(df_adu):
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
 
     evaluate_results(y_pred=y_pred, y_test=y_test, clf=clf, X_test=X_test)
+
+
+def densify_matrix(model_name, X):
+    if model_name == 'naive_bayes':
+        return X.toarray()
+
+    return X

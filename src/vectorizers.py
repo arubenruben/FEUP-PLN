@@ -18,6 +18,8 @@ def vectorize_bag_of_words(corpus, ngram_range=(1, 1), max_features=None, binary
 def vectorize_tf_idf(corpus, ngram_range=(1, 1), max_features=None, lowercase=False):
     vectorizer = TfidfVectorizer(tokenizer=tokenization, token_pattern=None, max_features=max_features,
                                  ngram_range=ngram_range,
+                                 max_df=0.10,
+                                 min_df=2,
                                  lowercase=lowercase,
                                  sublinear_tf=True)
 

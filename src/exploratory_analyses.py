@@ -129,12 +129,6 @@ def deal_with_outliers(df_adu, dict_collisions, option='delete'):
         for key_left in dict_collisions.keys():
             list_to_remove.append(key_left)
             for elem in dict_collisions[key_left]:
-                """
-                Remove with a probability of 80%
-                """
-                if random.uniform(0, 1) > 0.80:
-                    continue
-
                 list_to_remove.append(elem)
 
         remove_dataframe_rows_by_id(df_adu, list_to_remove)
