@@ -1,3 +1,5 @@
+import time
+
 from models import *
 from other import load_dataset, save_classifier_to_disk
 from exploratory_analyses import study_sparsity_of_matrix
@@ -43,14 +45,13 @@ def prod():
     df_adu['number_interjections'] = 0
     df_adu['number_verbs'] = 0
     df_adu['number_proper_nouns'] = 0
-    """
+
     for i, row in df_adu.iterrows():
         number_adj, number_interjections, number_verbs, number_proper_nouns = get_pos_numbers(row['tokens'])
         df_adu.at[i, 'number_adj'] = number_adj
         df_adu.at[i, 'number_interjections'] = number_interjections
         df_adu.at[i, 'number_verbs'] = number_verbs
-
-    """
+   
     print("Start Vectorize")
 
     X, vec, vectorizer = vectorize_tf_idf(corpus, ngram_range=(1, 2), max_features=None)

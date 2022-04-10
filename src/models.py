@@ -2,10 +2,9 @@ import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
 from scipy import sparse
-from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
-from sklearn.linear_model import LogisticRegression, SGDClassifier
-from sklearn.model_selection import train_test_split, RepeatedStratifiedKFold, cross_val_score, cross_validate
+from sklearn.linear_model import LogisticRegression, SGDClassifier, Lasso
+from sklearn.model_selection import train_test_split, RepeatedStratifiedKFold, cross_validate
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
@@ -15,7 +14,7 @@ from sklearn.tree import DecisionTreeClassifier
 from evaluation import evaluate_results
 from exploratory_analyses import size_vocabulary, outlier_detection, deal_with_outliers
 from lexicons import load_lexicons, get_polarity
-from other import drop_columns, load_dataset, write_new_csv_datatest
+from other import drop_columns, load_dataset
 from pos import get_pos_numbers
 from text_processing import insert_previous_and_after_sentence_to_adu, tokenization, normalize_corpus
 from vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
@@ -30,21 +29,25 @@ def clf_factory(algorithm, *params):
 
     if algorithm == 'logistic_regression':
         return LogisticRegression(max_iter=1000, *params)
-
     if algorithm == 'svm':
-        return CalibratedClassifierCV(SGDClassifier(max_iter=20000, random_state=42, n_jobs=-1))
+        return SGDClassifier(loss='modified_huber', max_iter=30000, n_iter_no_change=20, random_state=42,
+                             class_weight='balanced',
+                             n_jobs=-1)
 
     if algorithm == 'decision_tree':
         return DecisionTreeClassifier(max_depth=15, random_state=42)
 
     if algorithm == 'bagging':
-        return BaggingClassifier(*params)
+        return BaggingClassifier(*params, random_state=42)
 
     if algorithm == 'random_forest':
         return RandomForestClassifier(n_estimators=1000, class_weight='balanced', random_state=1, n_jobs=-1)
 
     if algorithm == 'neural_net':
         return MLPClassifier(*params, learning_rate='adaptive', random_state=42)
+
+    if algorithm == 'LASSO':
+        return Lasso(alpha=0.1)
 
     raise "Invalid Algorithm"
 
@@ -84,9 +87,7 @@ def apply_clf(clf, X_train, y_train, X_test):
 def apply_cross_validation(clf, X, y):
     cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=7, random_state=1)
 
-    scores = cross_validate(clf, X, y, cv=cv, n_jobs=-1,
-                            return_train_score=True,
-                            scoring=['precision_macro', 'recall_macro', 'roc_auc_ovo_weighted', 'f1_macro'])
+    scores = cross_validate(clf, X, y, cv=cv, n_jobs=-1, scoring=['roc_auc_ovo_weighted', 'f1_macro'])
 
     return scores
 
