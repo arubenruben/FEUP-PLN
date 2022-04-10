@@ -2,9 +2,10 @@ import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
 from scipy import sparse
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression, SGDClassifier
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, RepeatedStratifiedKFold, cross_val_score, cross_validate
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
@@ -31,7 +32,7 @@ def clf_factory(algorithm, *params):
         return LogisticRegression(max_iter=1000, *params)
 
     if algorithm == 'svm':
-        return SGDClassifier(max_iter=5000, random_state=42, n_jobs=-1)
+        return CalibratedClassifierCV(SGDClassifier(max_iter=20000, random_state=42, n_jobs=-1))
 
     if algorithm == 'decision_tree':
         return DecisionTreeClassifier(max_depth=15, random_state=42)
@@ -40,7 +41,7 @@ def clf_factory(algorithm, *params):
         return BaggingClassifier(*params)
 
     if algorithm == 'random_forest':
-        return RandomForestClassifier(n_estimators=200, random_state=42, n_jobs=-1)
+        return RandomForestClassifier(n_estimators=1000, class_weight='balanced', random_state=1, n_jobs=-1)
 
     if algorithm == 'neural_net':
         return MLPClassifier(*params, learning_rate='adaptive', random_state=42)
@@ -78,6 +79,16 @@ def apply_clf(clf, X_train, y_train, X_test):
     y_pred = clf.predict(X_test)
 
     return y_pred
+
+
+def apply_cross_validation(clf, X, y):
+    cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=7, random_state=1)
+
+    scores = cross_validate(clf, X, y, cv=cv, n_jobs=-1,
+                            return_train_score=True,
+                            scoring=['precision_macro', 'recall_macro', 'roc_auc_ovo_weighted', 'f1_macro'])
+
+    return scores
 
 
 def baseline(df_adu, df_text, algorithm='naive_bayes'):
@@ -165,7 +176,8 @@ def baseline_with_normalization(df_adu, df_text, algorithm='naive_bayes'):
 
 
 def oversample_with_smote(X_train, y_train, sampling_strategy="auto"):
-    over_sampler = SMOTE(sampling_strategy=sampling_strategy, n_jobs=-1, random_state=42)
+    strategy = {'Value(+)': 800, 'Value(-)': 800, 'Policy': 800, 'Fact': 800}
+    over_sampler = SMOTE(sampling_strategy=sampling_strategy, n_jobs=-1, random_state=1)
 
     X_train, y_train = over_sampler.fit_resample(X_train, y_train)
 

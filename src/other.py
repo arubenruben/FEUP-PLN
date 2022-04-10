@@ -11,8 +11,7 @@ def convert_xlsx_to_csv(filename):
 
 
 def drop_columns(df, columns_to_drop: list):
-    for column in columns_to_drop:
-        df.pop(column)
+    df.drop(columns_to_drop, errors='ignore', inplace=True)
 
 
 def load_dataset(text_augmentation=False):

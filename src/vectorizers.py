@@ -19,8 +19,6 @@ def vectorize_tf_idf(corpus, ngram_range=(1, 1), max_features=None, lowercase=Fa
     vectorizer = TfidfVectorizer(tokenizer=tokenization, token_pattern=None, max_features=max_features,
                                  ngram_range=ngram_range,
                                  lowercase=lowercase,
-                                 max_df=0.5,
-                                 min_df=3,
                                  sublinear_tf=True)
 
     vec = vectorizer.fit(corpus)
