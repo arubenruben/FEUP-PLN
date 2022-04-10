@@ -6,3 +6,4 @@ scipy
 scikit-learn
 imblearn
 spacy
+matplotlib

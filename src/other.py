@@ -1,6 +1,6 @@
 import os
 import random
-
+from joblib import dump, load
 import pandas as pd
 
 
@@ -11,19 +11,18 @@ def convert_xlsx_to_csv(filename):
 
 
 def drop_columns(df, columns_to_drop: list):
-    for column in columns_to_drop:
-        df.pop(column)
+    df.drop(columns_to_drop, errors='ignore', inplace=True)
 
 
 def load_dataset(text_augmentation=False):
     df_text = pd.DataFrame(pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles.csv')))
-    
+
     if not text_augmentation:
         df_adu = pd.DataFrame(pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles_ADUs.csv')))
     else:
         df_adu = pd.DataFrame(
             pd.read_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles_ADUs_translator.csv')))
-    
+
     create_index_column(df_adu)
     return df_adu, df_text
 
@@ -67,5 +66,13 @@ def add_xlsx_to_df(df, column_1, value):
             df_value.at[index, column_1] = cell
 
     df = df.append(df_value, ignore_index=True)
-    df.to_csv(os.path.join(os.path.dirname(__file__),'dataset', 'OpArticles_ADUs_translator.csv'), index=None,
-                  header=True)
+    df.to_csv(os.path.join(os.path.dirname(__file__), 'dataset', 'OpArticles_ADUs_translator.csv'), index=None,
+              header=True)
+
+
+def save_classifier_to_disk(clf, clf_name):
+    dump(clf, os.path.join('classifiers', f"{clf_name}_{random.randint(0, 90000).__str__()}.joblib"))
+
+
+def load_classifier_from_disk(filename):
+    return load(os.path.join('classifiers', f"{filename.replace('.joblib', '')}.joblib"))

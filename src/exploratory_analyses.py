@@ -1,5 +1,6 @@
 import json
-
+import random
+import matplotlib.pyplot as plt
 import plotly.express as px
 
 from other import remove_dataframe_rows_by_id
@@ -181,3 +182,8 @@ def deal_with_outliers(df_adu, dict_collisions, option='delete'):
         remove_dataframe_rows_by_id(df_adu, list_to_remove)
 
     # print(f"After:{df_adu.describe()}")
+
+
+def study_sparsity_of_matrix(X):
+    plt.spy(X)
+    plt.title("Sparse Matrix")

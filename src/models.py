@@ -3,19 +3,18 @@ import pandas as pd
 from imblearn.over_sampling import SMOTE
 from scipy import sparse
 from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression, SGDClassifier, Lasso
+from sklearn.model_selection import train_test_split, RepeatedStratifiedKFold, cross_validate
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OrdinalEncoder
-from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 from evaluation import evaluate_results
 from exploratory_analyses import size_vocabulary, outlier_detection, deal_with_outliers
-from other import drop_columns, load_dataset, write_new_csv_datatest
 from lexicons import load_lexicons, get_polarity
+from other import drop_columns, load_dataset
 from pos import get_pos_numbers
 from text_processing import insert_previous_and_after_sentence_to_adu, tokenization, normalize_corpus
 from vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
@@ -30,21 +29,25 @@ def clf_factory(algorithm, *params):
 
     if algorithm == 'logistic_regression':
         return LogisticRegression(max_iter=1000, *params)
-
     if algorithm == 'svm':
-        return SVC()
+        return SGDClassifier(loss='modified_huber', max_iter=30000, n_iter_no_change=20, random_state=42,
+                             class_weight='balanced',
+                             n_jobs=-1)
 
     if algorithm == 'decision_tree':
-        return DecisionTreeClassifier()
+        return DecisionTreeClassifier(max_depth=15, random_state=42)
 
     if algorithm == 'bagging':
-        return BaggingClassifier(*params)
+        return BaggingClassifier(*params, random_state=42)
 
     if algorithm == 'random_forest':
-        return RandomForestClassifier(*params)
+        return RandomForestClassifier(n_estimators=1000, class_weight='balanced', random_state=1, n_jobs=-1)
 
     if algorithm == 'neural_net':
-        return MLPClassifier(*params)
+        return MLPClassifier(*params, learning_rate='adaptive', random_state=42)
+
+    if algorithm == 'LASSO':
+        return Lasso(alpha=0.1)
 
     raise "Invalid Algorithm"
 
@@ -81,6 +84,14 @@ def apply_clf(clf, X_train, y_train, X_test):
     return y_pred
 
 
+def apply_cross_validation(clf, X, y):
+    cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=7, random_state=1)
+
+    scores = cross_validate(clf, X, y, cv=cv, n_jobs=-1, scoring=['roc_auc_ovo_weighted', 'f1_macro'])
+
+    return scores
+
+
 def baseline(df_adu, df_text, algorithm='naive_bayes'):
     drop_columns(df_adu, ['article_id', 'node', 'annotator'])
     drop_columns(df_text, ['article_id', 'title', 'authors', 'meta_description',
@@ -101,7 +112,7 @@ def baseline(df_adu, df_text, algorithm='naive_bayes'):
 
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
 
-    evaluate_results(y_pred=y_pred, y_test=y_test)
+    evaluate_results(y_pred=y_pred, y_test=y_test, clf=clf, X_test=X_test)
 
 
 def test_tf_idf(df_adu, algorithm='naive_bayes'):
@@ -120,7 +131,7 @@ def test_tf_idf(df_adu, algorithm='naive_bayes'):
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
     print('Policy' in y_pred)
 
-    evaluate_results(y_pred=y_pred, y_test=y_test)
+    evaluate_results(y_pred=y_pred, y_test=y_test, clf=clf, X_test=X_test)
 
 
 def test_1_hot_vector(df_adu, df_text, algorithm='naive_bayes'):
@@ -140,7 +151,7 @@ def test_1_hot_vector(df_adu, df_text, algorithm='naive_bayes'):
 
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
 
-    evaluate_results(y_pred=y_pred, y_test=y_test)
+    evaluate_results(y_pred=y_pred, y_test=y_test, clf=clf, X_test=X_test)
 
 
 def baseline_with_normalization(df_adu, df_text, algorithm='naive_bayes'):
@@ -162,11 +173,12 @@ def baseline_with_normalization(df_adu, df_text, algorithm='naive_bayes'):
 
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
     print("Apply Model Done")
-    evaluate_results(y_pred=y_pred, y_test=y_test)
+    evaluate_results(y_pred=y_pred, y_test=y_test, clf=clf, X_test=X_test)
 
 
 def oversample_with_smote(X_train, y_train, sampling_strategy="auto"):
-    over_sampler = SMOTE(sampling_strategy=sampling_strategy)
+    strategy = {'Value(+)': 800, 'Value(-)': 800, 'Policy': 800, 'Fact': 800}
+    over_sampler = SMOTE(sampling_strategy=sampling_strategy, n_jobs=-1, random_state=1)
 
     X_train, y_train = over_sampler.fit_resample(X_train, y_train)
 
@@ -194,7 +206,7 @@ def baseline_2(df_adu):
 
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
 
-    evaluate_results(y_pred=y_pred, y_test=y_test)
+    evaluate_results(y_pred=y_pred, y_test=y_test, clf=clf, X_test=X_test)
 
     """
     """
@@ -225,7 +237,7 @@ def baseline_deleting_outliers(df_adu, outlier_strategy='delete'):
 
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
 
-    evaluate_results(y_pred=y_pred, y_test=y_test)
+    evaluate_results(y_pred=y_pred, y_test=y_test, clf=clf, X_test=X_test)
 
 
 def model_annotator_explicit(df_adu):
@@ -258,7 +270,7 @@ def model_annotator_explicit(df_adu):
 
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
 
-    evaluate_results(y_pred=y_pred, y_test=y_test)
+    evaluate_results(y_pred=y_pred, y_test=y_test, clf=clf, X_test=X_test)
 
 
 def model_for_each_annotator():
@@ -333,7 +345,7 @@ def baseline_with_lexicons(df_adu):
         df_adu.at[i, 'negative_words'] = negatives
         df_adu.at[i, 'unknown_words'] = unknowns
 
-    write_new_csv_datatest(df_adu, 'dataset_with_lexicons')
+    # write_new_csv_datatest(df_adu, 'dataset_with_lexicons')
 
     corpus = corpus_extraction(df_adu)
 
@@ -346,7 +358,7 @@ def baseline_with_lexicons(df_adu):
     X['positive_words'] = df_adu['positive_words']
     X['neutral_words'] = df_adu['neutral_words']
     X['negative_words'] = df_adu['negative_words']
-    # X['unknown_words'] = df_adu['unknown_words']
+    X['unknown_words'] = df_adu['unknown_words']
 
     """
     Scipy Style Translation
@@ -362,15 +374,16 @@ def baseline_with_lexicons(df_adu):
 
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
 
-    evaluate_results(y_pred=y_pred, y_test=y_test)
-    """
-    """
+    evaluate_results(y_pred=y_pred, y_test=y_test, clf=clf, X_test=X_test)
 
 
 def baseline_with_pos(df_adu):
     drop_columns(df_adu, ['article_id', 'node'])
 
-    # TODO: Duplicated Tokenization going on here and on CountVectorizer
+    df_adu['number_adj'] = 0
+    df_adu['number_interjections'] = 0
+    df_adu['number_verbs'] = 0
+    df_adu['number_proper_nouns'] = 0
 
     for i, row in df_adu.iterrows():
         number_adj, number_interjections, number_verbs, number_proper_nouns = get_pos_numbers(row['tokens'])
@@ -408,4 +421,11 @@ def baseline_with_pos(df_adu):
 
     y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
 
-    evaluate_results(y_pred=y_pred, y_test=y_test)
+    evaluate_results(y_pred=y_pred, y_test=y_test, clf=clf, X_test=X_test)
+
+
+def densify_matrix(model_name, X):
+    if model_name == 'naive_bayes':
+        return X.toarray()
+
+    return X
