@@ -4,11 +4,11 @@ from models import *
 from other import load_dataset, save_classifier_to_disk
 from exploratory_analyses import study_sparsity_of_matrix
 
-
 def main():
-    # dev()
-    prod()
-    # load_classifier()
+    
+    dev()
+    # prod()
+    
 
 
 def dev():
@@ -16,12 +16,13 @@ def dev():
     # baseline_with_lexicons(df_adu)
     # baseline_with_pos(df_adu)
     # baseline_with_normalization(df_adu, df_text)
-    baseline(df_adu, df_text)
+    # baseline(df_adu, df_text)
     # baseline(df_adu, df_text)
 
     # test_1_hot_vector(df_adu, df_text)
     # test_tf_idf(df_adu, df_text)
     # print("---------------")
+    baseline_with_embeddings(df_adu, load_model=True)
 
 
 def prod():

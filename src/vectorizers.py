@@ -1,6 +1,7 @@
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+import gensim
 
-from text_processing import tokenization
+from text_processing import tokenization, corpus_to_list
 
 
 def vectorize_bag_of_words(corpus, ngram_range=(1, 1), max_features=None, binary=False, lowercase=False):
@@ -22,12 +23,13 @@ def vectorize_tf_idf(corpus, ngram_range=(1, 1), max_features=None, lowercase=Fa
                                  min_df=2,
                                  lowercase=lowercase,
                                  sublinear_tf=True)
-
+    print(vectorizer)
     vec = vectorizer.fit(corpus)
 
     X = vectorizer.transform(corpus).todense()
 
     return X, vec, vectorizer
+
 
 
 def vectorize_1_hot(corpus, ngram_range=(1, 1), max_features=None, lowercase=False):

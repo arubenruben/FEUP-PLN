@@ -1,6 +1,8 @@
 import os
 import random
 from joblib import dump, load
+import gensim
+from gensim.models import KeyedVectors
 import pandas as pd
 
 
@@ -71,8 +73,16 @@ def add_xlsx_to_df(df, column_1, value):
 
 
 def save_classifier_to_disk(clf, clf_name):
-    dump(clf, os.path.join('classifiers', f"{clf_name}_{random.randint(0, 90000).__str__()}.joblib"))
+    dump(clf, os.path.join(os.path.dirname(__file__),'classifiers', f"{clf_name}_{random.randint(0, 90000).__str__()}.joblib"))
 
 
 def load_classifier_from_disk(filename):
-    return load(os.path.join('classifiers', f"{filename.replace('.joblib', '')}.joblib"))
+    return load(os.path.join(os.path.dirname(__file__),'classifiers', f"{filename.replace('.joblib', '')}.joblib"))
+
+def save_embedding_model(model, filename):
+    model.wv.save(os.path.join(os.path.dirname(__file__), filename))
+
+def load_embedding_model(filename, saved_model=False):
+    if saved_model:
+        return gensim.models.KeyedVectors.load(os.path.join(os.path.dirname(__file__), filename))
+    return KeyedVectors.load_word2vec_format(os.path.join(os.path.dirname(__file__), filename))

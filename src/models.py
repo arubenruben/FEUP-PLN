@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
-from scipy import sparse
+from scipy import sparse, stats
 from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression, SGDClassifier, Lasso
 from sklearn.model_selection import train_test_split, RepeatedStratifiedKFold, cross_validate
@@ -14,10 +14,11 @@ from sklearn.tree import DecisionTreeClassifier
 from evaluation import evaluate_results
 from exploratory_analyses import size_vocabulary, outlier_detection, deal_with_outliers
 from lexicons import load_lexicons, get_polarity
-from other import drop_columns, load_dataset
+from other import drop_columns, load_dataset, load_embedding_model
 from pos import get_pos_numbers
-from text_processing import insert_previous_and_after_sentence_to_adu, tokenization, normalize_corpus
+from text_processing import insert_previous_and_after_sentence_to_adu, tokenization, normalize_corpus, normalize_corpus_embedding
 from vectorizers import vectorize_bag_of_words, vectorize_tf_idf, vectorize_1_hot
+from embeddings import train_embedding_model, apply_embedding_model
 
 
 def clf_factory(algorithm, *params):
@@ -423,6 +424,29 @@ def baseline_with_pos(df_adu):
 
     evaluate_results(y_pred=y_pred, y_test=y_test, clf=clf, X_test=X_test)
 
+
+def baseline_with_embeddings(df_adu, load_model=False, algorithm='naive_bayes'):
+    
+    corpus = corpus_extraction(df_adu)
+    corpus = normalize_corpus_embedding(corpus)
+
+    y = label_extraction(df_adu)
+
+    if load_model:
+        model = load_embedding_model("skip_s100.txt")
+    else:
+        model = train_embedding_model(corpus)
+
+    #lens = [len(c.split()) for c in corpus]
+    #print(np.min(lens), np.max(lens), np.mean(lens), np.std(lens), stats.mode(lens))
+    X = apply_embedding_model(model, corpus)
+    X_train, X_test, y_train, y_test = split_train_test(X, y)
+
+    clf = clf_factory(algorithm)
+
+    y_pred = apply_clf(clf, X_train=X_train, y_train=y_train, X_test=X_test)
+
+    evaluate_results(y_pred=y_pred, y_test=y_test, clf=clf, X_test=X_test)
 
 def densify_matrix(model_name, X):
     if model_name == 'naive_bayes':

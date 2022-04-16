@@ -88,3 +88,20 @@ def normalize_corpus(corpus):
     # print(corpus_aux)
 
     return corpus_aux
+
+def normalize_corpus_embedding(corpus):
+    corpus_aux = []
+
+    for row in corpus:
+        sentence_without_punctuation = remove_punctuation(row)
+        corpus_aux.append(sentence_without_punctuation.lower())
+
+    return corpus_aux
+
+def corpus_to_list(corpus):
+    corpus_aux = []
+
+    for row in corpus:
+        corpus_aux.append(tokenization(row))
+
+    return corpus_aux
