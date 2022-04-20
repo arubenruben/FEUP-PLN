@@ -7,3 +7,4 @@ scikit-learn
 imblearn
 spacy
 matplotlib
+gensim
