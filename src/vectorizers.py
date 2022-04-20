@@ -23,7 +23,7 @@ def vectorize_tf_idf(corpus, ngram_range=(1, 1), max_features=None, lowercase=Fa
                                  min_df=2,
                                  lowercase=lowercase,
                                  sublinear_tf=True)
-    print(vectorizer)
+
     vec = vectorizer.fit(corpus)
 
     X = vectorizer.transform(corpus).todense()
