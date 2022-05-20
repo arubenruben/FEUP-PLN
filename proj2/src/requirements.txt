@@ -1,0 +1,7 @@
+numpy
+nltk
+pandas
+plotly
+datasets
+transformers
+torch
