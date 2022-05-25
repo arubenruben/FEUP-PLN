@@ -1,40 +1,53 @@
 import numpy as np
 import torch
-from transformers import AutoModelForSequenceClassification
+from transformers import AutoModelForSequenceClassification, TrainingArguments, DataCollatorWithPadding, Trainer
 from transformers import AutoTokenizer
 
 from data_loading import load_dataset, split_train_test
-from evaluate import evaluate
+from evaluate import evaluate, compute_metrics
 from constants import NUM_LABELS
 
 
 def task_1():
+    model_name = 'neuralmind/bert-base-portuguese-cased'
+
     df_adu, _ = load_dataset()
 
-    dataset = split_train_test(df_adu, 1.0, 0.0)
+    dataset = split_train_test(df_adu)
 
-    tokenizer = AutoTokenizer.from_pretrained('neuralmind/bert-base-portuguese-cased', do_lower_case=False)
-    model = AutoModelForSequenceClassification.from_pretrained('neuralmind/bert-base-portuguese-cased',
-                                                               num_labels=NUM_LABELS)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, do_lower_case=False)
 
-    y_pred = []
-    y_test = []
+    tokenized_dataset = dataset.map(lambda x: preprocess_function(tokenizer, x), batched=True)
 
-    for index, elem in enumerate(dataset['test']):
-        # print(f"Evaluating:{index + 1}/{len(dataset['test'])}")
-        inputs = tokenizer(elem['tokens'], padding=True, truncation=True, return_tensors="pt")
-        outputs = model(**inputs)
+    model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=NUM_LABELS)
 
-        predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
+    training_args = TrainingArguments(
+        output_dir="./results",
+        learning_rate=2e-5,
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=16,
+        num_train_epochs=3,
+        weight_decay=0.01,
+        evaluation_strategy="epoch",  # run validation at the end of each epoch
+        save_strategy="epoch",
+        load_best_model_at_end=True,
+    )
 
-        y_pred.append(np.argmax(predictions.detach().numpy(), axis=-1))
+    data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
-        y_test.append(elem['label'])
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=tokenized_dataset["train"],
+        eval_dataset=tokenized_dataset["validation"],
+        tokenizer=tokenizer,
+        data_collator=data_collator,
+        compute_metrics=compute_metrics
+    )
 
-        if index == 1000:
-            break
-
-    evaluate(y_test, y_pred)
+    trainer.train()
+    trainer.evaluate()
+    trainer.predict(test_dataset=tokenized_dataset["test"])
 
 
 def preprocess_function(tokenizer, sample):
