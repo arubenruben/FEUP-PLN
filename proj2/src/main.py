@@ -1,23 +1,21 @@
-import numpy as np
-import torch
+from transformers import AutoModelForSequenceClassification, TrainingArguments, DataCollatorWithPadding, Trainer
 from transformers import AutoModelForSequenceClassification, TrainingArguments, DataCollatorWithPadding, Trainer
 from transformers import AutoTokenizer
 
-from data_loading import load_dataset, split_train_test
-from evaluate import evaluate, compute_metrics
 from constants import NUM_LABELS
+from data_loading import load_dataset, split_train_test
+from evaluate import compute_metrics
+
+model_name = 'neuralmind/bert-base-portuguese-cased'
+tokenizer = AutoTokenizer.from_pretrained(model_name, do_lower_case=False)
 
 
 def task_1():
-    model_name = 'neuralmind/bert-base-portuguese-cased'
-
     df_adu, _ = load_dataset()
 
     dataset = split_train_test(df_adu)
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name, do_lower_case=False)
-
-    tokenized_dataset = dataset.map(lambda x: preprocess_function(tokenizer, x), batched=True)
+    tokenized_dataset = dataset.map(preprocess_function, batched=True)
 
     model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=NUM_LABELS)
 
@@ -50,8 +48,8 @@ def task_1():
     trainer.predict(test_dataset=tokenized_dataset["test"])
 
 
-def preprocess_function(tokenizer, sample):
-    return tokenizer(sample["tokens"], padding=True, truncation=True, return_tensors='pt')
+def preprocess_function(sample):
+    return tokenizer(sample["tokens"], truncation=True)
 
 
 if __name__ == '__main__':

@@ -1,3 +1,4 @@
+import numpy as np
 from datasets import load_metric
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
