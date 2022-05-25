@@ -1,61 +1,42 @@
-from transformers import AutoTokenizer, AutoModelForPreTraining
-from transformers import DataCollatorWithPadding
-from transformers import AutoModelForSequenceClassification, TrainingArguments, Trainer
+import numpy as np
+import torch
+from transformers import AutoModelForSequenceClassification
+from transformers import AutoTokenizer
 
-from constants import NUM_LABELS
-from data_loading import load_dataset, normalize_dataset, split_train_test
+from data_loading import load_dataset, split_train_test
+from evaluate import evaluate
 
 
 def task_1():
     df_adu, _ = load_dataset()
 
-    normalize_dataset(df_adu)
+    dataset = split_train_test(df_adu, 1.0, 0.0)
 
-    train, test = split_train_test(df_adu)
+    tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased', do_lower_case=False)
+    model = AutoModelForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=5)
 
-    # model = AutoModelForPreTraining.from_pretrained('neuralmind/bert-large-portuguese-cased')
-    tokenizer = AutoTokenizer.from_pretrained('neuralmind/bert-large-portuguese-cased', do_lower_case=False)
+    y_pred = []
+    y_test = []
 
-    tokenized_dataset = {
-        'train': [],
-        'test': []
-    }
+    for index, elem in enumerate(dataset['test']):
+        # print(f"Evaluating:{index + 1}/{len(dataset['test'])}")
+        inputs = tokenizer(elem['tokens'], padding=True, truncation=True, return_tensors="pt")
+        outputs = model(**inputs)
 
-    for index, row in train.iterrows():
-        tokenized_dataset['train'].append(preprocess_function(tokenizer, row))
+        predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
 
-    for index, row in test.iterrows():
-        tokenized_dataset['test'].append(preprocess_function(tokenizer, row))
+        y_pred.append(np.argmax(predictions.detach().numpy(), axis=-1))
 
-    data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="tf")
+        y_test.append(elem['label'])
 
-    model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels=NUM_LABELS)
+        if index == 1000:
+            break
 
-    training_args = TrainingArguments(
-        output_dir="./results",
-        learning_rate=2e-5,
-        per_device_train_batch_size=16,
-        per_device_eval_batch_size=16,
-        num_train_epochs=5,
-        weight_decay=0.01,
-    )
-
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=tokenized_dataset["train"],
-        eval_dataset=tokenized_dataset["test"],
-        tokenizer=tokenizer,
-        data_collator=data_collator,
-    )
-
-    trainer.train()
-    """
-    """
+    evaluate(y_test, y_pred)
 
 
-def preprocess_function(tokenizer, examples):
-    return tokenizer(examples["text"], truncation=True)
+def preprocess_function(tokenizer, sample):
+    return tokenizer(sample["tokens"], padding=True, truncation=True, return_tensors='pt')
 
 
 if __name__ == '__main__':
