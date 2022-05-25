@@ -29,9 +29,6 @@ def task_1():
 
         y_test.append(elem['label'])
 
-        if index == 1000:
-            break
-
     evaluate(y_test, y_pred)
 
 
