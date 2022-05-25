@@ -5,6 +5,7 @@ from transformers import AutoTokenizer
 
 from data_loading import load_dataset, split_train_test
 from evaluate import evaluate
+from constants import NUM_LABELS
 
 
 def task_1():
@@ -12,8 +13,9 @@ def task_1():
 
     dataset = split_train_test(df_adu, 1.0, 0.0)
 
-    tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased', do_lower_case=False)
-    model = AutoModelForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=5)
+    tokenizer = AutoTokenizer.from_pretrained('neuralmind/bert-base-portuguese-cased', do_lower_case=False)
+    model = AutoModelForSequenceClassification.from_pretrained('neuralmind/bert-base-portuguese-cased',
+                                                               num_labels=NUM_LABELS)
 
     y_pred = []
     y_test = []
@@ -28,6 +30,9 @@ def task_1():
         y_pred.append(np.argmax(predictions.detach().numpy(), axis=-1))
 
         y_test.append(elem['label'])
+
+        if index == 1000:
+            break
 
     evaluate(y_test, y_pred)
 
