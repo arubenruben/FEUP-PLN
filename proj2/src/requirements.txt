@@ -1,9 +1,10 @@
-numpy
+numpy~=1.21.2
 nltk
-pandas
+pandas~=1.4.2
 plotly
-datasets
-transformers
+datasets~=2.2.2
+transformers~=4.18.0
 torch
-scikit-learn
+scikit-learn~=1.0.2
 jupyter
+tqdm
