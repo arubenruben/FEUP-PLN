@@ -5,3 +5,4 @@ plotly
 datasets
 transformers
 torch
+scikit-learn

@@ -2,7 +2,8 @@ from transformers import AutoTokenizer, AutoModelForPreTraining
 from transformers import DataCollatorWithPadding
 from transformers import AutoModelForSequenceClassification, TrainingArguments, Trainer
 
-from data_loading import load_dataset, normalize_dataset
+from constants import NUM_LABELS
+from data_loading import load_dataset, normalize_dataset, split_train_test
 
 
 def task_1():
@@ -10,22 +11,25 @@ def task_1():
 
     normalize_dataset(df_adu)
 
-    print(df_adu)
+    train, test = split_train_test(df_adu)
 
-    """
-    model = AutoModelForPreTraining.from_pretrained('neuralmind/bert-large-portuguese-cased')
+    # model = AutoModelForPreTraining.from_pretrained('neuralmind/bert-large-portuguese-cased')
     tokenizer = AutoTokenizer.from_pretrained('neuralmind/bert-large-portuguese-cased', do_lower_case=False)
 
-    tokenized_dataset = []
+    tokenized_dataset = {
+        'train': [],
+        'test': []
+    }
 
-    for index, row in df_adu.iterrows():
-        print(preprocess_function(tokenizer, row['tokens']))
+    for index, row in train.iterrows():
+        tokenized_dataset['train'].append(preprocess_function(tokenizer, row))
 
+    for index, row in test.iterrows():
+        tokenized_dataset['test'].append(preprocess_function(tokenizer, row))
 
-    tokenized_imdb = imdb.map(preprocess_function, batched=True)
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="tf")
 
-    model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels=2)
+    model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels=NUM_LABELS)
 
     training_args = TrainingArguments(
         output_dir="./results",
@@ -39,13 +43,14 @@ def task_1():
     trainer = Trainer(
         model=model,
         args=training_args,
-        train_dataset=tokenized_imdb["train"],
-        eval_dataset=tokenized_imdb["test"],
+        train_dataset=tokenized_dataset["train"],
+        eval_dataset=tokenized_dataset["test"],
         tokenizer=tokenizer,
         data_collator=data_collator,
     )
 
     trainer.train()
+    """
     """
 
 
