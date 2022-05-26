@@ -19,6 +19,8 @@ def load_dataset():
 def normalize_dataset(df):
     df.drop(columns=['article_id', 'annotator', 'node', 'ranges'], inplace=True)
     df.replace(ENCODING, inplace=True)
+    
+    #df.rename(columns={'label': 'labels'}, inplace=True)
 
     dataset_hf = Dataset.from_pandas(df)
 
@@ -48,16 +50,20 @@ def split_train_test(df, test_percentage=0.2, validation_percentage=0.5):
 
 
 def load_data_for_masking(df):
-    return list(df['body'])
-    """
+    
     df.drop(columns=['article_id', 'title', 'authors', 'meta_description', 'topics', 'keywords', 'publish_date',
                      'url_canonical'], inplace=True)
-
+    
     df.rename(columns={'body': 'tokens'}, inplace=True)
 
-    dataset_hf = Dataset.from_pandas(df)
+    dataset = Dataset.from_pandas(df)
 
-    return DatasetDict({
-        'unsupervised': dataset_hf,
+    train_test = dataset.train_test_split(test_size=0.2)
+
+    
+    train_valid_test_dataset = DatasetDict({
+        'train': train_test['train'],
+        'test': train_test['test'],        
     })
-    """
+
+    return train_valid_test_dataset
