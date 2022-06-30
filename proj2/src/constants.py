@@ -1,1 +1,0 @@
-NUM_LABELS = 5
