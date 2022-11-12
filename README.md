@@ -1,6 +1,6 @@
 # Argumentative Discourse Units Classification
 
-This repository stores the code developed during the NLP course at FEUP. It is divided into project 1 and project 2, which target the same objective and **address a classification task over Portugues argumentative text.** The first part uses only classical machine learning tasks. The second part uses hugging face transformers to address this problem.
+This repository stores the code developed during the NLP course at FEUP. It is divided into project 1 and project 2, which target the same objective and **address a classification task over Portugues argumentative text.** The first part uses only classical machine learning techniques. The second part uses hugging face transformers to address this problem.
 
 ## What is an ADU?
 
